@@ -93,6 +93,21 @@ body {
            shadow-glow transition-transform duration-300
            hover:scale-[1.04] active:scale-95;
   }
+
+  /* Ô nhập liệu của trang /create */
+  .input-field {
+    @apply w-full rounded-2xl border border-white/80 bg-white/80 px-4 py-3
+           text-[15px] text-cocoa shadow-sm outline-none transition-all duration-200
+           placeholder:text-cocoa/35 focus:border-berry/50 focus:ring-4 focus:ring-berry/10;
+  }
+}
+
+/* Ẩn scrollbar của stepper (vẫn cuộn ngang được) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Hiệu ứng background (CSS-only, nhẹ) ────────────────── */
