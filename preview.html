@@ -1,44 +1,47 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#fff5f1">
-  <meta name="description" content="Một trang tình yêu được tạo riêng cho hai bạn.">
-  <title>Minh ❤️ Ngọc</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <script>
+    if (window.location.protocol === 'file:') {
+      const params = new URLSearchParams(window.location.search);
+      const next = new URL('http://localhost:8000/preview.html');
+      next.search = params.toString();
+      window.location.replace(next.toString());
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#fff5f1" />
+  <meta name="description" content="Preview website tình yêu" />
+  <title>Preview | Love Website</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="templates/love-50-01/style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-  <script src="script.js" defer></script>
+  <script src="templates/love-50-01/script.js" defer></script>
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
   <div class="ambient ambient-two" aria-hidden="true"></div>
-  <div class="floating-hearts" id="floating-hearts" aria-hidden="true"></div>
   <div class="touch-hearts" id="touch-hearts" aria-hidden="true"></div>
 
   <main class="love-screen">
     <div class="love-content">
-      <section class="hero-section reveal">
-        <p class="eyebrow">Một câu chuyện nhỏ...</p>
+      <header class="love-hero section-card">
+        <p class="result-kicker">Our little forever</p>
         <div class="couple-photos">
-          <div class="photo-frame"><img id="result-sender-photo" alt="Ảnh người thứ nhất"></div>
+          <div class="photo-frame"><img id="result-sender-photo" alt="Ảnh người thứ nhất" /></div>
           <span class="heart-divider">♥</span>
-          <div class="photo-frame receiver-frame"><img id="result-receiver-photo" alt="Ảnh người thứ hai"></div>
+          <div class="photo-frame receiver-frame"><img id="result-receiver-photo" alt="Ảnh người thứ hai" /></div>
         </div>
-        <h1 class="hero-title"><span id="result-sender-name">Minh</span><span class="title-heart heart-beat">♥</span><span id="result-receiver-name">Ngọc</span></h1>
-        <p class="hero-subtitle">Và đây là câu chuyện của chúng mình.</p>
-        <p class="hero-date">Bắt đầu từ <span id="result-date">14/02/2025</span></p>
-      </section>
-
-      <section class="story-intro section-card reveal">
-        <p class="section-label">Our little forever</p>
+        <h2 id="love-title"><span id="result-sender-name">Minh</span><span class="title-heart"> ♥ </span><span id="result-receiver-name">Ngọc</span></h2>
+        <div class="divider">✦</div>
         <p class="result-message" id="result-message">Mỗi khoảnh khắc bên nhau đều là một điều đáng nhớ.</p>
-      </section>
+        <p class="result-date" id="result-date">✦ 14/02/2025 ✦</p>
+      </header>
 
-      <section class="counter-section section-card reveal" aria-labelledby="counter-title">
+      <section class="counter-section section-card" aria-labelledby="counter-title">
         <p class="section-label">Every second with you</p>
         <h2 id="counter-title">Chúng mình đã bên nhau</h2>
         <div class="counter-grid">
@@ -50,21 +53,15 @@
         <p class="future-note" id="future-note" hidden></p>
       </section>
 
-      <section class="section-card reveal" id="timeline-section" hidden>
-        <p class="section-label">Our story</p>
-        <h2>Ngày mà câu chuyện của chúng mình bắt đầu</h2>
-        <div class="timeline-list" id="timeline-list"></div>
-      </section>
-
-      <section class="album-section section-card reveal" id="album-section" hidden>
+      <section class="album-section section-card" id="album-section" hidden>
         <p class="section-label">Little moments</p>
         <h2>Album kỷ niệm</h2>
         <div class="result-album-grid" id="result-album"></div>
       </section>
 
-      <section class="letter-section section-card reveal" id="letter-section" hidden>
+      <section class="letter-section section-card" id="letter-section" hidden>
         <p class="section-label">Written from the heart</p>
-        <h2>Gửi người anh thương…</h2>
+        <h2>💌 Một bức thư dành cho em</h2>
         <button class="envelope-button" id="envelope-button" type="button" aria-expanded="false">
           <span class="envelope-art"><span class="envelope-paper">Một chút yêu thương...</span></span>
           <span class="envelope-hint">Chạm để mở thư</span>
@@ -74,15 +71,20 @@
         </div>
       </section>
 
-      <section class="section-card final-section reveal" id="final-section" hidden>
-        <p class="section-label">Final message</p>
-        <h2>Và nếu được chọn lại…</h2>
-        <p class="final-message" id="final-message"></p>
-        <div class="final-heart">♥</div>
+      <section class="section-card timeline-section" id="timeline-section" hidden>
+        <p class="section-label">Our story</p>
+        <h2>Timeline</h2>
+        <div class="timeline-list" id="timeline-list"></div>
       </section>
 
-      <section class="music-section section-card reveal" id="result-music" hidden>
-        <span class="music-note">♫</span>
+      <section class="section-card final-section" id="final-section" hidden>
+        <p class="section-label">Final message</p>
+        <h2>Điều cuối cùng</h2>
+        <p class="final-message" id="final-message"></p>
+      </section>
+
+      <section class="music-section section-card" id="result-music" hidden>
+        <span class="music-note">🎵</span>
         <div>
           <strong id="result-music-name">Giai điệu của chúng mình</strong>
           <small id="music-state">Tạm dừng</small>
@@ -96,7 +98,7 @@
   <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Xem ảnh lớn">
     <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Đóng">×</button>
     <button class="lightbox-arrow previous" id="lightbox-prev" type="button" aria-label="Ảnh trước">‹</button>
-    <img id="lightbox-image" alt="Ảnh kỷ niệm phóng to">
+    <img id="lightbox-image" alt="Ảnh kỷ niệm phóng to" />
     <button class="lightbox-arrow next" id="lightbox-next" type="button" aria-label="Ảnh sau">›</button>
   </div>
 </body>
