@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Fonts ─────────────────────────────────────────────── */
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-script: "Dancing Script", "Segoe Script", cursive;
+
+  /* ── Palette "Romantic Premium Cute" ──────────────────── */
+  --color-cream: #fff9f4;
+  --color-cream-deep: #fdeee6;
+  --color-petal: #ffe9f0;
+  --color-blush: #ffd3e2;
+  --color-candy: #ff9dbb;
+  --color-berry: #f25c88;
+  --color-wine: #d6336c;
+  --color-cocoa: #59304a;
+  --color-lav: #ede4ff;
+  --color-lilac: #c9b1f0;
+  --color-plum: #4a2b5f;
+  --color-night: #241631;
+
+  /* ── Shadows mềm ───────────────────────────────────────── */
+  --shadow-soft: 0 20px 40px -12px rgb(242 92 136 / 0.22);
+  --shadow-glow: 0 10px 40px -6px rgb(242 92 136 / 0.55);
+  --shadow-card: 0 12px 32px -8px rgb(89 48 74 / 0.16);
+
+  /* ── Animations ────────────────────────────────────────── */
+  --animate-beat: beat 1.6s ease-in-out infinite;
+  --animate-spin-slower: spin 7s linear infinite;
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+  --animate-twinkle: twinkle 3.2s ease-in-out infinite;
+  --animate-bob: bob 5s ease-in-out infinite;
+
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    12% { transform: scale(1.18); }
+    24% { transform: scale(1); }
+    36% { transform: scale(1.12); }
+    48% { transform: scale(1); }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.92; transform: scale(1.035); }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.6) rotate(0deg); }
+    50% { opacity: 0.9; transform: scale(1.15) rotate(20deg); }
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-16px) rotate(5deg); }
+  }
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-cream text-cocoa font-sans antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-berry);
+  color: #fff;
+}
+
+/* Scrollbar hồng dễ thương */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--color-petal); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-candy), var(--color-lilac));
+  border-radius: 999px;
+  border: 2px solid var(--color-petal);
+}
+
+/* ── Component classes dùng chung ───────────────────────── */
+@layer components {
+  /* Glassmorphism nhẹ */
+  .glass {
+    @apply border border-white/70 bg-white/60 backdrop-blur-xl;
+  }
+
+  /* Nút gradient chính */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-gradient-to-r from-berry to-lilac px-7 py-3.5
+           text-sm sm:text-base font-semibold text-white
+           shadow-glow transition-transform duration-300
+           hover:scale-[1.04] active:scale-95;
+  }
+}
+
+/* ── Hiệu ứng background (CSS-only, nhẹ) ────────────────── */
+
+/* Hero: gradient chuyển động rất nhẹ */
+.hero-bg {
+  background: linear-gradient(155deg, #fff9f4 0%, #ffe9f0 38%, #f3e9ff 72%, #fff9f4 100%);
+  background-size: 220% 220%;
+  animation: hero-pan 14s ease-in-out infinite;
+}
+@keyframes hero-pan {
+  0%, 100% { background-position: 0% 30%; }
+  50% { background-position: 100% 70%; }
+}
+
+/* Trái tim bay lên từ dưới màn hình */
+.fx-heart {
+  position: absolute;
+  bottom: -48px;
+  animation: float-up var(--dur, 14s) linear infinite;
+  will-change: transform, opacity;
+}
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(0.8); opacity: 0; }
+  8%   { opacity: var(--peak, 0.7); }
+  85%  { opacity: var(--peak, 0.7); }
+  100% { transform: translateY(-112vh) scale(1.05); opacity: 0; }
+}
+
+/* Lắc lư nhẹ cho trái tim (lớp con) */
+.fx-heart > .sway {
+  display: inline-block;
+  animation: sway var(--sway-dur, 3s) ease-in-out infinite alternate;
+}
+@keyframes sway {
+  from { transform: translateX(-7px) rotate(-10deg); }
+  to   { transform: translateX(7px) rotate(10deg); }
+}
+
+/* Sparkle lấp lánh */
+.fx-sparkle {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff 0%, var(--color-candy) 55%, transparent 72%);
+  animation: fx-twinkle var(--dur, 3.2s) ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes fx-twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.5); }
+  50% { opacity: 0.85; transform: scale(1.2); }
+}
+
+/* Blob gradient khổng lồ trôi chậm */
+.fx-blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(72px);
+  animation: blob-drift var(--dur, 20s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes blob-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(var(--dx, 40px), var(--dy, -50px)) scale(1.15); }
+}
+
+/* Section cuối: nền tối lãng mạn */
+.night-bg {
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgb(201 177 240 / 0.35) 0%, transparent 60%),
+    radial-gradient(900px 480px at 85% 110%, rgb(242 92 136 / 0.28) 0%, transparent 55%),
+    linear-gradient(170deg, #3b2350 0%, #241631 58%, #1b1026 100%);
+}
+
+/* Giấy thư kẻ dòng nhẹ */
+.paper-lines {
+  background-image: linear-gradient(transparent calc(100% - 1px), rgb(242 92 136 / 0.09) 1px);
+  background-size: 100% 2.1rem;
+}
+
+/* ── Giảm animation cho prefers-reduced-motion ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .fx-heart, .fx-sparkle, .fx-blob { display: none; }
+}
