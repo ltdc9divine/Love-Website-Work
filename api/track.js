@@ -6,6 +6,8 @@ const VALID_EVENT_NAMES = new Set([
   'click_buy',
   'start_create',
   'submit_order',
+  'payment_check_started',
+  'payment_check_failed',
   'payment_success',
   'website_created'
 ]);

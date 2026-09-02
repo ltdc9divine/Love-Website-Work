@@ -15,11 +15,14 @@
       --muted: #72636b;
       --line: rgba(118, 76, 90, 0.12);
       --brand: #b94d63;
-      --brand-2: #f0c9d2;
+      --brand-soft: #f8e5ea;
       --success: #1a8a5c;
       --warning: #876419;
+      --danger: #b94d63;
+      --shadow: rgba(82, 41, 57, 0.08);
     }
     * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
     body {
       margin: 0;
       font-family: "DM Sans", sans-serif;
@@ -27,61 +30,59 @@
       color: var(--text);
     }
     .page {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 48px 20px 72px;
     }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 26px;
-      box-shadow: 0 18px 48px rgba(88, 40, 58, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 20px 52px var(--shadow);
       overflow: hidden;
     }
     .header {
-      padding: 28px 32px;
+      padding: 24px 28px;
       border-bottom: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
-      gap: 18px;
       align-items: center;
-      background: rgba(251, 241, 244, 0.8);
+      background: rgba(251, 241, 244, 0.75);
     }
     .brand {
       font-weight: 700;
-      font-size: 1.2rem;
       letter-spacing: 0.04em;
+      font-size: 1.15rem;
     }
     .status-pill {
-      background: rgba(26, 138, 92, 0.12);
-      color: var(--success);
-      border: 1px solid rgba(26, 138, 92, 0.2);
       border-radius: 999px;
       padding: 8px 12px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      border: 1px solid rgba(26, 138, 92, 0.2);
+      background: rgba(26, 138, 92, 0.12);
+      color: var(--success);
     }
     .content {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 0;
+      grid-template-columns: 1.2fr 0.8fr;
     }
     .panel {
-      padding: 32px;
+      padding: 28px 28px 30px;
     }
     .muted { color: var(--muted); }
     h1 {
       margin: 0 0 10px;
       font-family: "Playfair Display", serif;
-      font-size: clamp(2rem, 4vw, 3rem);
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
     }
     .meta {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
-      margin-top: 26px;
+      margin-top: 22px;
     }
     .meta-box {
       background: rgba(242, 250, 248, 0.5);
@@ -91,38 +92,84 @@
     }
     .meta-label {
       display: block;
-      font-size: 0.76rem;
-      text-transform: uppercase;
+      font-size: 0.75rem;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: var(--muted);
       margin-bottom: 8px;
     }
     .price {
-      font-size: clamp(1.5rem, 3vw, 2.3rem);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
       font-weight: 700;
-      margin-top: 10px;
+      margin-top: 8px;
+    }
+    .qr-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #ffffff;
+      margin-top: 22px;
+      min-height: 260px;
+    }
+    .qr-box img {
+      width: min(230px, 72vw);
+      height: min(230px, 72vw);
+      display: block;
+      border-radius: 16px;
+      background: white;
     }
     .bank-box {
+      margin-top: 24px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.8);
       padding: 20px 18px;
-      margin-top: 24px;
+      background: rgba(255, 255, 255, 0.9);
     }
     .bank-box h3 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-size: 1.1rem;
     }
     .pay-line {
       display: flex;
       justify-content: space-between;
-      gap: 18px;
+      gap: 12px;
       padding: 8px 0;
       border-bottom: 1px dashed rgba(118, 76, 90, 0.14);
       color: var(--muted);
     }
     .pay-line:last-child { border-bottom: none; }
-    .pay-line strong { color: var(--text); }
+    .pay-line strong {
+      color: var(--text);
+      text-align: right;
+      word-break: break-word;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    button, .button-link {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary {
+      background: linear-gradient(135deg, var(--brand) 0%, #dc6d86 100%);
+      color: white;
+      box-shadow: 0 8px 16px rgba(185, 77, 99, 0.2);
+    }
+    .secondary {
+      background: var(--brand-soft);
+      color: var(--brand);
+      border: 1px solid rgba(185, 77, 99, 0.12);
+    }
     .note {
       margin-top: 18px;
       padding: 16px 18px;
@@ -135,9 +182,6 @@
     .side {
       border-left: 1px solid var(--line);
       background: rgba(252, 247, 249, 0.7);
-    }
-    .side .panel {
-      padding: 28px 24px;
     }
     .summary {
       border: 1px solid var(--line);
@@ -152,40 +196,51 @@
     .summary-row {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       padding: 10px 0;
       border-bottom: 1px solid rgba(118, 76, 90, 0.08);
       color: var(--muted);
     }
     .summary-row:last-child { border-bottom: none; }
     .summary-row strong { color: var(--text); }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--brand) 0%, #e5768a 100%);
-      color: white;
-      padding: 14px 22px;
-      font-size: 0.96rem;
-      font-weight: 700;
-      text-decoration: none;
+    .link-row {
       margin-top: 20px;
-      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .ghost-link {
-      display: inline-block;
-      margin-top: 14px;
-      color: var(--brand);
+    .link-row a {
       text-decoration: none;
-      font-weight: 600;
+      color: var(--brand);
+      font-weight: 700;
     }
-    @media (max-width: 760px) {
+    .status-banner {
+      margin-top: 18px;
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-weight: 600;
+      line-height: 1.6;
+      background: rgba(185, 77, 99, 0.08);
+      border: 1px solid rgba(185, 77, 99, 0.14);
+      color: var(--text);
+    }
+    .status-banner.success {
+      background: rgba(26, 138, 92, 0.08);
+      border-color: rgba(26, 138, 92, 0.14);
+      color: var(--success);
+    }
+    .status-banner.loading {
+      background: rgba(255, 245, 195, 0.38);
+      border-color: rgba(135, 100, 25, 0.2);
+      color: var(--warning);
+    }
+    @media (max-width: 820px) {
       .content { grid-template-columns: 1fr; }
       .side { border-left: none; border-top: 1px solid var(--line); }
       .meta { grid-template-columns: 1fr; }
       .header { flex-direction: column; align-items: flex-start; }
+      .pay-line { flex-direction: column; }
+      .pay-line strong { text-align: left; }
     }
   </style>
 </head>
@@ -194,12 +249,12 @@
     <div class="card">
       <div class="header">
         <div class="brand">Lưu Bút</div>
-        <div class="status-pill" id="order-status">Pending</div>
+        <div class="status-pill" id="order-status">CHỜ THANH TOÁN</div>
       </div>
 
       <div class="content">
         <div class="panel">
-          <p class="muted">Checkout</p>
+          <p class="muted">Payment required</p>
           <h1>Đơn hàng của bạn</h1>
           <p class="muted" id="template-name">Đang tải thông tin mẫu...</p>
 
@@ -214,17 +269,29 @@
             </div>
           </div>
 
+          <div class="qr-box">
+            <img id="qr-image" alt="QR code thanh toán" src="" />
+          </div>
+
           <div class="bank-box">
             <h3>Chuyển khoản ngân hàng</h3>
-            <div class="pay-line"><span>Ngân hàng</span><strong>Vietcombank / Techcombank / NCB</strong></div>
-            <div class="pay-line"><span>Chủ tài khoản</span><strong>Lưu Bút Studio</strong></div>
-            <div class="pay-line"><span>Số tài khoản</span><strong>0123456789</strong></div>
+            <div class="pay-line"><span>Ngân hàng</span><strong id="bank-name">-</strong></div>
+            <div class="pay-line"><span>Chủ tài khoản</span><strong id="account-name">-</strong></div>
+            <div class="pay-line"><span>Số tài khoản</span><strong id="account-number">-</strong></div>
             <div class="pay-line"><span>Nội dung chuyển khoản</span><strong id="transfer-note">-</strong></div>
             <div class="pay-line"><span>Số tiền</span><strong id="transfer-amount">0đ</strong></div>
+            <div class="button-row">
+              <button type="button" class="secondary" id="copy-account">Sao chép số TK</button>
+              <button type="button" class="secondary" id="copy-content">Sao chép nội dung</button>
+            </div>
+          </div>
+
+          <div class="status-banner loading" id="payment-status-banner">
+            Đang chờ thanh toán. Hệ thống đang kiểm tra giao dịch của bạn. Bạn không cần đóng trang này.
           </div>
 
           <div class="note">
-            Đây là nền tảng checkout cơ bản cho Phase 3A. Thanh toán hiện đang ở trạng thái chờ xác nhận. Hệ thống sẽ xác minh thanh toán bằng cơ chế server-side trong giai đoạn tiếp theo, không thông qua JavaScript trên browser.
+            Vui lòng chuyển đúng số tiền và giữ nguyên nội dung chuyển khoản. Xác minh thanh toán diễn ra ở server, không dựa vào thao tác của browser.
           </div>
         </div>
 
@@ -233,12 +300,14 @@
             <div class="summary">
               <h3>Tóm tắt đơn</h3>
               <div class="summary-row"><span>Mẫu</span><strong id="summary-template">-</strong></div>
-              <div class="summary-row"><span>Trạng thái</span><strong id="summary-status">Pending</strong></div>
+              <div class="summary-row"><span>Trạng thái</span><strong id="summary-status">Chờ thanh toán</strong></div>
               <div class="summary-row"><span>Phương thức</span><strong>Bank transfer</strong></div>
               <div class="summary-row"><span>Ngày tạo</span><strong id="summary-date">-</strong></div>
             </div>
-            <a class="button" href="/index.html#templates">Quay lại chọn mẫu</a>
-            <a class="ghost-link" href="/preview.html">Xem preview trước</a>
+            <div class="link-row">
+              <a href="/index.html#templates">Quay lại chọn mẫu</a>
+              <a href="/preview.html">Xem preview</a>
+            </div>
           </div>
         </aside>
       </div>
@@ -251,42 +320,301 @@
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numeric);
     }
 
+    function setStatusPill(text, type) {
+      const pill = document.getElementById('order-status');
+      pill.textContent = text;
+      if (type === 'success') {
+        pill.style.background = 'rgba(26, 138, 92, 0.12)';
+        pill.style.color = '#1a8a5c';
+        pill.style.borderColor = 'rgba(26, 138, 92, 0.2)';
+      } else if (type === 'error') {
+        pill.style.background = 'rgba(185, 77, 99, 0.12)';
+        pill.style.color = '#b94d63';
+        pill.style.borderColor = 'rgba(185, 77, 99, 0.16)';
+      } else {
+        pill.style.background = 'rgba(26, 138, 92, 0.12)';
+        pill.style.color = '#1a8a5c';
+        pill.style.borderColor = 'rgba(26, 138, 92, 0.2)';
+      }
+    }
+
+    function setBanner(message, variant) {
+      const banner = document.getElementById('payment-status-banner');
+      banner.textContent = message;
+      banner.className = 'status-banner ' + (variant || 'loading');
+    }
+
+    async function copyText(text, buttonId) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const temp = document.createElement('textarea');
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand('copy');
+          document.body.removeChild(temp);
+        }
+        const button = document.getElementById(buttonId);
+        const originalText = button.textContent;
+        button.textContent = 'Đã sao chép';
+        setTimeout(() => { button.textContent = originalText; }, 1400);
+      } catch (error) {
+        console.warn('Copy failed:', error);
+      }
+    }
+
+    function buildVietQrUrl({ bankId, accountNumber, amount, reference }) {
+      if (!bankId || !accountNumber || !reference) {
+        return '';
+      }
+      const numericAmount = Number(amount || 0);
+      const normalizedAmount = Number.isFinite(numericAmount) ? Math.round(Math.max(0, numericAmount)) : 0;
+      return `https://img.vietqr.io/image/${encodeURIComponent(String(bankId))}-${encodeURIComponent(String(accountNumber))}-compact2.png?amount=${normalizedAmount}&addInfo=${encodeURIComponent(String(reference))}`;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
-    const reference = params.get('reference') || 'LB-ORDER';
-    const amount = params.get('amount') || '0';
+    const referenceFromUrl = params.get('reference') || '';
     const template = params.get('template') || 'Love Story';
-    const status = (params.get('status') || 'pending').toLowerCase();
-    const websiteId = params.get('websiteId') || '';
 
-    const orderStatus = document.getElementById('order-status');
     const orderReferenceEl = document.getElementById('order-reference');
     const orderAmountEl = document.getElementById('order-amount');
-    const templateNameEl = document.getElementById('template-name');
     const transferNoteEl = document.getElementById('transfer-note');
     const transferAmountEl = document.getElementById('transfer-amount');
     const summaryTemplateEl = document.getElementById('summary-template');
     const summaryStatusEl = document.getElementById('summary-status');
     const summaryDateEl = document.getElementById('summary-date');
+    const templateNameEl = document.getElementById('template-name');
+    const qrImage = document.getElementById('qr-image');
+    const bankNameEl = document.getElementById('bank-name');
+    const accountNameEl = document.getElementById('account-name');
+    const accountNumberEl = document.getElementById('account-number');
 
-    const readableStatus = status === 'paid' ? 'Paid' : status === 'failed' ? 'Failed' : status === 'cancelled' ? 'Cancelled' : 'Pending';
-    orderStatus.textContent = readableStatus;
-    orderStatus.style.background = readableStatus === 'Pending' ? 'rgba(26, 138, 92, 0.12)' : 'rgba(185, 77, 99, 0.12)';
-    orderStatus.style.color = readableStatus === 'Pending' ? '#1a8a5c' : '#b94d63';
-    orderStatus.style.borderColor = readableStatus === 'Pending' ? 'rgba(26, 138, 92, 0.2)' : 'rgba(185, 77, 99, 0.16)';
+    let paymentConfig = {
+      bankId: null,
+      bankName: null,
+      accountName: null,
+      accountNumber: null,
+      qrConfigured: false,
+      paymentDetectionConfigured: false
+    };
+    let trustedOrder = null;
+    let orderLoadComplete = false;
+    let orderLoadError = null;
+    let paymentConfigLoadComplete = false;
+    let hasTrackedPaymentCheckStarted = false;
+    let hasTrackedPaymentCheckFailed = false;
+    let hasTrackedPaymentSuccess = false;
+    let paymentDone = false;
+    let pollHandle = null;
 
-    orderReferenceEl.textContent = reference;
-    orderAmountEl.textContent = money(amount);
-    templateNameEl.textContent = `Mẫu: ${template}`;
-    transferNoteEl.textContent = reference;
-    transferAmountEl.textContent = money(amount);
-    summaryTemplateEl.textContent = template;
-    summaryStatusEl.textContent = readableStatus;
-    summaryDateEl.textContent = new Date().toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+    function renderVerifyingState() {
+      orderReferenceEl.textContent = 'Đang xác minh...';
+      orderAmountEl.textContent = 'Đang xác minh...';
+      transferNoteEl.textContent = 'Đang xác minh...';
+      transferAmountEl.textContent = 'Đang xác minh...';
+      summaryTemplateEl.textContent = template;
+      templateNameEl.textContent = `Mẫu: ${template}`;
+      summaryDateEl.textContent = new Date().toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+      summaryStatusEl.textContent = 'Đang xác minh';
+      bankNameEl.textContent = 'Đang tải...';
+      accountNameEl.textContent = 'Đang tải...';
+      accountNumberEl.textContent = 'Đang tải...';
+      qrImage.removeAttribute('src');
+      setStatusPill('ĐANG XÁC MINH', 'loading');
+      setBanner('Đang xác minh đơn hàng. Hệ thống đang kiểm tra thông tin thanh toán từ server.', 'loading');
+    }
 
-    const idText = orderId ? `#${orderId.slice(0, 8)}` : 'Đang chờ xác nhận';
-    document.title = `Checkout ${reference} | Lưu Bút`;
-    document.getElementById('order-reference').title = idText;
+    function applyBankConfig(config) {
+      paymentConfig = {
+        bankId: config && config.bankId ? String(config.bankId) : null,
+        bankName: config && config.bankName ? String(config.bankName) : null,
+        accountName: config && config.accountName ? String(config.accountName) : null,
+        accountNumber: config && config.accountNumber ? String(config.accountNumber) : null,
+        qrConfigured: Boolean(config && config.qrConfigured),
+        paymentDetectionConfigured: Boolean(config && config.paymentDetectionConfigured)
+      };
+
+      document.getElementById('copy-account').onclick = () => copyText(paymentConfig.accountNumber || '', 'copy-account');
+      document.getElementById('copy-content').onclick = () => copyText(orderReferenceEl.textContent || '', 'copy-content');
+    }
+
+    function buildTransferQr(order) {
+      if (!paymentConfig.qrConfigured || !order || String(order.payment_status || '').toLowerCase() !== 'pending' || !order.order_reference || !Number.isFinite(Number(order.amount)) || Number(order.amount) <= 0) {
+        qrImage.removeAttribute('src');
+        return;
+      }
+      const qrUrl = buildVietQrUrl({
+        bankId: paymentConfig.bankId,
+        accountNumber: paymentConfig.accountNumber,
+        amount: order.amount,
+        reference: order.order_reference
+      });
+      qrImage.src = qrUrl || '';
+    }
+
+    function renderCheckout() {
+      if (!orderLoadComplete || !paymentConfigLoadComplete) {
+        return;
+      }
+
+      if (orderLoadError || !trustedOrder) {
+        qrImage.removeAttribute('src');
+        bankNameEl.textContent = 'Chưa cấu hình';
+        accountNameEl.textContent = 'Chưa cấu hình';
+        accountNumberEl.textContent = 'Chưa cấu hình';
+        return;
+      }
+
+      const statusValue = String(trustedOrder.payment_status || 'pending').toLowerCase();
+      const trustedReference = trustedOrder.order_reference || '';
+      const trustedAmount = Number(trustedOrder.amount);
+
+      orderReferenceEl.textContent = trustedReference;
+      orderAmountEl.textContent = Number.isFinite(trustedAmount) ? money(trustedAmount) : 'Không xác định';
+      transferNoteEl.textContent = trustedReference;
+      transferAmountEl.textContent = Number.isFinite(trustedAmount) ? money(trustedAmount) : 'Không xác định';
+
+      if (paymentConfig.qrConfigured) {
+        bankNameEl.textContent = paymentConfig.bankName || 'Chưa cấu hình';
+        accountNameEl.textContent = paymentConfig.accountName || 'Chưa cấu hình';
+        accountNumberEl.textContent = paymentConfig.accountNumber || 'Chưa cấu hình';
+      } else {
+        bankNameEl.textContent = 'Chưa cấu hình';
+        accountNameEl.textContent = 'Chưa cấu hình';
+        accountNumberEl.textContent = 'Chưa cấu hình';
+      }
+
+      document.getElementById('copy-account').onclick = () => copyText(paymentConfig.accountNumber || '', 'copy-account');
+      document.getElementById('copy-content').onclick = () => copyText(trustedReference, 'copy-content');
+
+      if (statusValue === 'paid') {
+        qrImage.removeAttribute('src');
+        return;
+      }
+
+      buildTransferQr(trustedOrder);
+      if (!paymentConfig.qrConfigured) {
+        qrImage.removeAttribute('src');
+        setBanner('Thông tin QR thanh toán chưa được cấu hình. Vui lòng liên hệ để nhận thông tin chuyển khoản.', 'loading');
+      }
+    }
+
+    async function loadBankConfig() {
+      try {
+        const response = await fetch('/api/payment-config', { method: 'GET' });
+        const payload = await response.json();
+        if (payload && payload.ok && payload.config) {
+          applyBankConfig(payload.config);
+        } else {
+          applyBankConfig({ qrConfigured: false, paymentDetectionConfigured: false });
+        }
+      } catch (error) {
+        console.warn('Failed to load payment config:', error);
+        applyBankConfig({ qrConfigured: false, paymentDetectionConfigured: false });
+      } finally {
+        paymentConfigLoadComplete = true;
+        renderCheckout();
+      }
+    }
+
+    async function loadOrderStatus() {
+      if (!orderId && !referenceFromUrl) {
+        setStatusPill('ERROR', 'error');
+        setBanner('Không tìm thấy đơn hàng để kiểm tra thanh toán.', 'error');
+        return;
+      }
+
+      const query = orderId ? `orderId=${encodeURIComponent(orderId)}` : `reference=${encodeURIComponent(referenceFromUrl)}`;
+      try {
+        const response = await fetch(`/api/payment-status?${query}`, { method: 'GET' });
+        const payload = await response.json();
+
+        if (!payload || !payload.ok || !payload.order) {
+          throw new Error(payload && payload.error ? payload.error : 'Không thể tải trạng thái đơn hàng.');
+        }
+
+        const order = payload.order;
+        const statusValue = String(order.payment_status || 'pending').toLowerCase();
+        const trustedReference = order.order_reference || '';
+        const trustedAmount = Number(order.amount);
+
+        if (!trustedReference || !Number.isFinite(trustedAmount) || trustedAmount <= 0) {
+          throw new Error('Order does not contain a trusted amount and reference.');
+        }
+
+        trustedOrder = order;
+        orderLoadError = null;
+        orderLoadComplete = true;
+        renderCheckout();
+
+        if (statusValue === 'paid') {
+          paymentDone = true;
+          if (pollHandle) {
+            clearInterval(pollHandle);
+          }
+          setStatusPill('ĐÃ THANH TOÁN', 'success');
+          setBanner('✓ Thanh toán thành công. Đơn hàng ' + trustedReference + ' đã được xác nhận. Website của bạn đang được chuẩn bị.', 'success');
+          orderReferenceEl.textContent = trustedReference;
+          orderAmountEl.textContent = money(trustedAmount);
+          transferNoteEl.textContent = trustedReference;
+          transferAmountEl.textContent = money(trustedAmount);
+          summaryStatusEl.textContent = 'Đã thanh toán';
+          if (window.LuubutAnalytics && window.LuubutAnalytics.track && !hasTrackedPaymentSuccess) {
+            hasTrackedPaymentSuccess = true;
+            window.LuubutAnalytics.track('payment_success', { metadata: { order_reference: trustedReference, amount: trustedAmount } });
+          }
+          return;
+        }
+
+        summaryStatusEl.textContent = 'Chờ thanh toán';
+        setStatusPill('CHỜ THANH TOÁN', 'pending');
+        setBanner('Đang chờ thanh toán. Hệ thống đang kiểm tra giao dịch của bạn. Bạn không cần đóng trang này.', 'loading');
+      } catch (error) {
+        console.warn('Status fetch failed:', error);
+        trustedOrder = null;
+        orderLoadError = error;
+        orderLoadComplete = true;
+        renderCheckout();
+        setStatusPill('LỖI', 'error');
+        setBanner('Không thể kết nối tới hệ thống xác minh thanh toán. Vui lòng chờ vài phút rồi thử lại.', 'error');
+        if (!hasTrackedPaymentCheckFailed && window.LuubutAnalytics && window.LuubutAnalytics.track) {
+          hasTrackedPaymentCheckFailed = true;
+          window.LuubutAnalytics.track('payment_check_failed', { metadata: { order_reference: referenceFromUrl || orderId || '', error: String(error.message || error) } });
+        }
+      }
+    }
+
+    function startPolling() {
+      if (!orderId && !referenceFromUrl) {
+        return;
+      }
+      if (!hasTrackedPaymentCheckStarted && window.LuubutAnalytics && window.LuubutAnalytics.track) {
+        hasTrackedPaymentCheckStarted = true;
+        window.LuubutAnalytics.track('payment_check_started', { metadata: { order_reference: referenceFromUrl || orderId || '' } });
+      }
+
+      loadOrderStatus();
+      pollHandle = window.setInterval(() => {
+        if (paymentDone) {
+          clearInterval(pollHandle);
+          return;
+        }
+        loadOrderStatus();
+      }, 7000);
+
+      window.setTimeout(() => {
+        if (!paymentDone && pollHandle) {
+          setBanner('Chưa nhận được giao dịch. Nếu bạn vừa chuyển khoản, vui lòng chờ thêm vài phút. Bạn có thể giữ nguyên trang này.', 'loading');
+        }
+      }, 120000);
+    }
+
+    renderVerifyingState();
+    loadBankConfig();
+    startPolling();
   </script>
 </body>
 </html>
