@@ -121,6 +121,13 @@
       border-radius: 16px;
       background: white;
     }
+    .payment-link {
+      display: none;
+      margin-top: 14px;
+      text-align: center;
+      text-decoration: none;
+    }
+    .payment-link.visible { display: block; }
     .bank-box {
       margin-top: 24px;
       border: 1px solid var(--line);
@@ -272,6 +279,7 @@
           <div class="qr-box">
             <img id="qr-image" alt="QR code thanh toán" src="" />
           </div>
+          <a class="button-link primary payment-link" id="payment-link" href="" target="_blank" rel="noreferrer">Mở trang thanh toán payOS</a>
 
           <div class="bank-box">
             <h3>Chuyển khoản ngân hàng</h3>
@@ -374,6 +382,13 @@
       return `https://img.vietqr.io/image/${encodeURIComponent(String(bankId))}-${encodeURIComponent(String(accountNumber))}-compact2.png?amount=${normalizedAmount}&addInfo=${encodeURIComponent(String(reference))}`;
     }
 
+    function buildPayOSQrUrl(qrCode) {
+      if (!qrCode) {
+        return '';
+      }
+      return `https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(String(qrCode))}`;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
     const referenceFromUrl = params.get('reference') || '';
@@ -398,12 +413,17 @@
       accountName: null,
       accountNumber: null,
       qrConfigured: false,
-      paymentDetectionConfigured: false
+      paymentDetectionConfigured: false,
+      paymentConfigured: false,
+      paymentProvider: 'unconfigured'
     };
     let trustedOrder = null;
     let orderLoadComplete = false;
     let orderLoadError = null;
     let paymentConfigLoadComplete = false;
+    let paymentRequest = null;
+    let paymentRequestLoadComplete = false;
+    let paymentRequestStarted = false;
     let hasTrackedPaymentCheckStarted = false;
     let hasTrackedPaymentCheckFailed = false;
     let hasTrackedPaymentSuccess = false;
@@ -423,6 +443,8 @@
       accountNameEl.textContent = 'Đang tải...';
       accountNumberEl.textContent = 'Đang tải...';
       qrImage.removeAttribute('src');
+      document.getElementById('payment-link').classList.remove('visible');
+      document.getElementById('payment-link').removeAttribute('href');
       setStatusPill('ĐANG XÁC MINH', 'loading');
       setBanner('Đang xác minh đơn hàng. Hệ thống đang kiểm tra thông tin thanh toán từ server.', 'loading');
     }
@@ -434,7 +456,9 @@
         accountName: config && config.accountName ? String(config.accountName) : null,
         accountNumber: config && config.accountNumber ? String(config.accountNumber) : null,
         qrConfigured: Boolean(config && config.qrConfigured),
-        paymentDetectionConfigured: Boolean(config && config.paymentDetectionConfigured)
+        paymentDetectionConfigured: Boolean(config && config.paymentDetectionConfigured),
+        paymentConfigured: Boolean(config && config.paymentConfigured),
+        paymentProvider: config && config.paymentProvider ? String(config.paymentProvider) : 'unconfigured'
       };
 
       document.getElementById('copy-account').onclick = () => copyText(paymentConfig.accountNumber || '', 'copy-account');
@@ -442,7 +466,15 @@
     }
 
     function buildTransferQr(order) {
-      if (!paymentConfig.qrConfigured || !order || String(order.payment_status || '').toLowerCase() !== 'pending' || !order.order_reference || !Number.isFinite(Number(order.amount)) || Number(order.amount) <= 0) {
+      if (!order || String(order.payment_status || '').toLowerCase() !== 'pending' || !order.order_reference || !Number.isFinite(Number(order.amount)) || Number(order.amount) <= 0) {
+        qrImage.removeAttribute('src');
+        return;
+      }
+      if (paymentRequest && paymentRequest.qrCode) {
+        qrImage.src = buildPayOSQrUrl(paymentRequest.qrCode);
+        return;
+      }
+      if (!paymentConfig.qrConfigured) {
         qrImage.removeAttribute('src');
         return;
       }
@@ -453,6 +485,28 @@
         reference: order.order_reference
       });
       qrImage.src = qrUrl || '';
+    }
+
+    async function loadPaymentRequest() {
+      paymentRequestLoadComplete = false;
+      try {
+        const response = await fetch('/api/create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: trustedOrder.id })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload || !payload.ok || !payload.payment) {
+          throw new Error(payload && payload.error ? payload.error : 'Không thể tạo thanh toán.');
+        }
+        paymentRequest = payload.payment;
+      } catch (error) {
+        paymentRequest = null;
+        console.warn('Payment creation failed:', error);
+      } finally {
+        paymentRequestLoadComplete = true;
+        renderCheckout();
+      }
     }
 
     function renderCheckout() {
@@ -471,6 +525,19 @@
       const statusValue = String(trustedOrder.payment_status || 'pending').toLowerCase();
       const trustedReference = trustedOrder.order_reference || '';
       const trustedAmount = Number(trustedOrder.amount);
+
+      if (!paymentRequestStarted) {
+        paymentRequestStarted = true;
+        if (paymentConfig.paymentConfigured && statusValue === 'pending') {
+          loadPaymentRequest();
+          return;
+        }
+        paymentRequestLoadComplete = true;
+      }
+
+      if (!paymentRequestLoadComplete) {
+        return;
+      }
 
       orderReferenceEl.textContent = trustedReference;
       orderAmountEl.textContent = Number.isFinite(trustedAmount) ? money(trustedAmount) : 'Không xác định';
@@ -492,13 +559,22 @@
 
       if (statusValue === 'paid') {
         qrImage.removeAttribute('src');
+        document.getElementById('payment-link').classList.remove('visible');
         return;
       }
 
       buildTransferQr(trustedOrder);
-      if (!paymentConfig.qrConfigured) {
+      const paymentLink = document.getElementById('payment-link');
+      if (paymentRequest && paymentRequest.checkoutUrl) {
+        paymentLink.href = paymentRequest.checkoutUrl;
+        paymentLink.classList.add('visible');
+      } else {
+        paymentLink.classList.remove('visible');
+        paymentLink.removeAttribute('href');
+      }
+      if (!paymentConfig.qrConfigured && !(paymentRequest && paymentRequest.qrCode)) {
         qrImage.removeAttribute('src');
-        setBanner('Thông tin QR thanh toán chưa được cấu hình. Vui lòng liên hệ để nhận thông tin chuyển khoản.', 'loading');
+        setBanner(paymentConfig.paymentConfigured ? 'Không thể tải mã QR payOS. Vui lòng mở link thanh toán hoặc thử lại sau.' : 'Thông tin QR thanh toán chưa được cấu hình. Vui lòng liên hệ để nhận thông tin chuyển khoản.', 'loading');
       }
     }
 

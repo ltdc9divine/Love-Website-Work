@@ -1,5 +1,45 @@
 const { getEnv } = require('./supabase');
 
+function getPayOSConfig() {
+  const clientId = getEnv('PAYOS_CLIENT_ID');
+  const apiKey = getEnv('PAYOS_API_KEY');
+  const checksumKey = getEnv('PAYOS_CHECKSUM_KEY');
+  const configured = Boolean(clientId && apiKey && checksumKey);
+
+  return {
+    clientId,
+    apiKey,
+    checksumKey,
+    configured,
+    provider: configured ? 'payos' : 'unconfigured',
+    accountNumber: getEnv('PAYOS_ACCOUNT_NUMBER'),
+    bankId: getEnv('PAYOS_BANK_ID') || getEnv('BANK_ID'),
+    bankName: getEnv('PAYOS_BANK_NAME') || getEnv('BANK_NAME'),
+    accountName: getEnv('PAYOS_ACCOUNT_NAME') || getEnv('BANK_ACCOUNT_NAME'),
+    returnUrl: getEnv('PAYOS_RETURN_URL') || 'https://luubutgift.vercel.app/checkout.html',
+    cancelUrl: getEnv('PAYOS_CANCEL_URL') || 'https://luubutgift.vercel.app/checkout.html'
+  };
+}
+
+function isPayOSConfigured() {
+  return getPayOSConfig().configured;
+}
+
+function createPayOSClient() {
+  const config = getPayOSConfig();
+  if (!config.configured) {
+    return null;
+  }
+
+  const { PayOS } = require('@payos/node');
+  return new PayOS({
+    clientId: config.clientId,
+    apiKey: config.apiKey,
+    checksumKey: config.checksumKey,
+    logLevel: 'off'
+  });
+}
+
 function normalizeOrderReference(value) {
   const text = String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   return text.slice(0, 32) || null;
@@ -80,6 +120,39 @@ async function checkPayment(order) {
 
   const providerName = getPaymentProviderName();
 
+  if (isPayOSConfigured() && order.payos_order_code) {
+    try {
+      const payment = await createPayOSClient().paymentRequests.get(order.payos_order_code);
+      const paidAmount = Number(payment.amountPaid || 0);
+      if (String(payment.status || '').toUpperCase() === 'PAID' && paidAmount === Math.round(Number(order.amount))) {
+        const transaction = Array.isArray(payment.transactions) ? payment.transactions[0] : null;
+        return {
+          paid: true,
+          provider: 'payos',
+          transactionCode: transaction && (transaction.reference || transaction.id) ? (transaction.reference || transaction.id) : String(payment.orderCode),
+          paymentTransactionId: transaction && (transaction.reference || transaction.id) ? (transaction.reference || transaction.id) : String(payment.orderCode),
+          amount: paidAmount,
+          paidAt: transaction && transaction.transactionDateTime ? new Date(transaction.transactionDateTime).toISOString() : new Date().toISOString(),
+          available: true
+        };
+      }
+
+      return {
+        paid: false,
+        provider: 'payos',
+        reason: 'PAYMENT_PENDING',
+        available: true
+      };
+    } catch {
+      return {
+        paid: false,
+        provider: 'payos',
+        reason: 'PAYMENT_PROVIDER_UNAVAILABLE',
+        available: false
+      };
+    }
+  }
+
   if (!providerName || providerName === 'unconfigured') {
     return {
       paid: false,
@@ -100,6 +173,9 @@ async function checkPayment(order) {
 }
 
 module.exports = {
+  getPayOSConfig,
+  isPayOSConfigured,
+  createPayOSClient,
   normalizeOrderReference,
   buildVietQrPayload,
   getBankConfig,
