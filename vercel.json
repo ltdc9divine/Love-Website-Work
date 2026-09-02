@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/preview/:token", "destination": "/preview.html?token=:token" },
-    { "source": "/preview", "destination": "/preview.html" }
+    { "source": "/preview", "destination": "/preview.html" },
+    { "source": "/p/:slug", "destination": "/preview.html?site=:slug" }
   ]
 }

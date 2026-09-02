@@ -501,4 +501,8 @@ document.addEventListener('visibilitychange', () => {
     initHeartRain();
   }
 });
-renderPage();
+if (window.__previewDataPromise) {
+  window.__previewDataPromise.then(() => renderPage());
+} else {
+  renderPage();
+}

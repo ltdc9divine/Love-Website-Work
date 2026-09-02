@@ -10,6 +10,16 @@ async function findWebsiteByPreviewToken(token) {
   return Array.isArray(records) ? records[0] : null;
 }
 
+async function findPublishedWebsiteBySlug(slug) {
+  if (!slug) {
+    throw Object.assign(new Error('Published website slug is required.'), { statusCode: 400 });
+  }
+
+  const query = `/rest/v1/websites?slug=eq.${encodeURIComponent(String(slug))}&status=eq.published&select=*`;
+  const records = await supabaseRequest({ path: query, method: 'GET' });
+  return Array.isArray(records) ? records[0] : null;
+}
+
 async function findTemplateById(templateId) {
   if (!templateId) return null;
   const query = `/rest/v1/templates?id=eq.${encodeURIComponent(String(templateId))}&select=*`;
@@ -38,14 +48,17 @@ module.exports = async function handler(req, res) {
 
   try {
     const tokenFromQuery = req.query && req.query.token ? String(req.query.token) : '';
+    const slugFromQuery = req.query && (req.query.site || req.query.slug) ? String(req.query.site || req.query.slug) : '';
     const pathToken = req.url && req.url.includes('/') ? req.url.split('/').filter(Boolean).pop() : '';
-    const token = tokenFromQuery || pathToken;
+    const token = tokenFromQuery || (slugFromQuery ? '' : pathToken);
 
-    if (!token) {
-      return res.status(400).json({ success: false, error: 'Preview token is required.' });
+    if (!token && !slugFromQuery) {
+      return res.status(400).json({ success: false, error: 'Preview token or published website slug is required.' });
     }
 
-    const website = await findWebsiteByPreviewToken(token);
+    const website = slugFromQuery
+      ? await findPublishedWebsiteBySlug(slugFromQuery)
+      : await findWebsiteByPreviewToken(token);
 
     if (!website) {
       return res.status(404).json({ success: false, error: 'Invalid preview token.' });

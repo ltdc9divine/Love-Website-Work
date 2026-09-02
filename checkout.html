@@ -389,6 +389,11 @@
       return `https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(String(qrCode))}`;
     }
 
+    function buildWebsiteQrUrl(publicUrl) {
+      if (!publicUrl) return '';
+      return `https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(new URL(publicUrl, window.location.origin).toString())}`;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
     const referenceFromUrl = params.get('reference') || '';
@@ -403,6 +408,7 @@
     const summaryDateEl = document.getElementById('summary-date');
     const templateNameEl = document.getElementById('template-name');
     const qrImage = document.getElementById('qr-image');
+    const paymentLinkEl = document.getElementById('payment-link');
     const bankNameEl = document.getElementById('bank-name');
     const accountNameEl = document.getElementById('account-name');
     const accountNumberEl = document.getElementById('account-number');
@@ -422,6 +428,7 @@
     let orderLoadError = null;
     let paymentConfigLoadComplete = false;
     let paymentRequest = null;
+    let publishedWebsiteUrl = null;
     let paymentRequestLoadComplete = false;
     let paymentRequestStarted = false;
     let hasTrackedPaymentCheckStarted = false;
@@ -558,8 +565,18 @@
       document.getElementById('copy-content').onclick = () => copyText(trustedReference, 'copy-content');
 
       if (statusValue === 'paid') {
-        qrImage.removeAttribute('src');
-        document.getElementById('payment-link').classList.remove('visible');
+        if (trustedOrder.publication_status === 'published' && trustedOrder.public_url) {
+          publishedWebsiteUrl = new URL(trustedOrder.public_url, window.location.origin).toString();
+          qrImage.src = buildWebsiteQrUrl(publishedWebsiteUrl);
+          paymentLinkEl.href = publishedWebsiteUrl;
+          paymentLinkEl.textContent = 'Xem website';
+          paymentLinkEl.classList.add('visible');
+          setBanner('✓ Thanh toán thành công. Website của bạn đã sẵn sàng.', 'success');
+        } else {
+          qrImage.removeAttribute('src');
+          paymentLinkEl.classList.remove('visible');
+          setBanner('Đã nhận thanh toán nhưng chưa thể xuất bản website. Vui lòng thử lại sau.', 'error');
+        }
         return;
       }
 
@@ -632,12 +649,11 @@
             clearInterval(pollHandle);
           }
           setStatusPill('ĐÃ THANH TOÁN', 'success');
-          setBanner('✓ Thanh toán thành công. Đơn hàng ' + trustedReference + ' đã được xác nhận. Website của bạn đang được chuẩn bị.', 'success');
           orderReferenceEl.textContent = trustedReference;
           orderAmountEl.textContent = money(trustedAmount);
           transferNoteEl.textContent = trustedReference;
           transferAmountEl.textContent = money(trustedAmount);
-          summaryStatusEl.textContent = 'Đã thanh toán';
+          summaryStatusEl.textContent = trustedOrder.publication_status === 'published' ? 'Đã thanh toán' : 'Đã thanh toán, chờ xuất bản';
           if (window.LuubutAnalytics && window.LuubutAnalytics.track && !hasTrackedPaymentSuccess) {
             hasTrackedPaymentSuccess = true;
             window.LuubutAnalytics.track('payment_success', { metadata: { order_reference: trustedReference, amount: trustedAmount } });

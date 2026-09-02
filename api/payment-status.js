@@ -28,6 +28,33 @@ async function findOrderByReference(reference) {
   return Array.isArray(rows) && rows.length ? rows[0] : null;
 }
 
+async function publishWebsite(websiteId) {
+  const websiteRows = await supabaseRequest({
+    path: `/rest/v1/websites?id=eq.${encodeURIComponent(websiteId)}&select=id,slug,status,published_at`,
+    method: 'GET'
+  });
+  const website = Array.isArray(websiteRows) && websiteRows.length ? websiteRows[0] : null;
+  if (!website || !website.slug) {
+    return { status: 'error', publicUrl: null };
+  }
+
+  if (website.status !== 'published') {
+    const publishedRows = await supabaseRequest({
+      path: `/rest/v1/websites?id=eq.${encodeURIComponent(websiteId)}&status=neq.published`,
+      method: 'PATCH',
+      body: { status: 'published', published_at: new Date().toISOString() }
+    });
+    if (!Array.isArray(publishedRows) || !publishedRows.length) {
+      return { status: 'error', publicUrl: null };
+    }
+  }
+
+  return {
+    status: 'published',
+    publicUrl: `/p/${encodeURIComponent(website.slug)}`
+  };
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed.' });
@@ -64,6 +91,15 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ ok: false, error: 'Order not found.' });
   }
 
+  let publication = { status: 'pending', publicUrl: null };
+  if (order.payment_status === 'paid') {
+    try {
+      publication = await publishWebsite(order.website_id);
+    } catch {
+      publication = { status: 'error', publicUrl: null };
+    }
+  }
+
   return res.status(200).json({
     ok: true,
     order: {
@@ -71,6 +107,8 @@ module.exports = async function handler(req, res) {
       order_reference: order.order_reference || '',
       amount: Number(order.amount || 0),
       payment_status: order.payment_status || 'pending',
+      publication_status: publication.status,
+      public_url: publication.publicUrl,
       payment_method: order.payment_method || 'bank_transfer',
       transaction_code: order.transaction_code || null,
       paid_at: order.paid_at || null,

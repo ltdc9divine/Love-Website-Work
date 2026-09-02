@@ -11,13 +11,15 @@
 
     const loadPreviewTokenData = async () => {
       const params = new URLSearchParams(window.location.search);
-      const token = params.get('token') || window.location.pathname.split('/').filter(Boolean).pop();
-      if (!token) return;
+      const token = params.get('token');
+      const site = params.get('site');
+      const lookup = token ? `token=${encodeURIComponent(token)}` : site ? `site=${encodeURIComponent(site)}` : '';
+      if (!lookup) return;
 
       try {
-        const response = await fetch(`/api/preview?token=${encodeURIComponent(token)}`);
+        const response = await fetch(`/api/preview?${lookup}`);
         if (!response.ok) {
-          console.warn('Preview token request failed:', response.status);
+          console.warn('Preview request failed:', response.status);
           return;
         }
         const result = await response.json();
@@ -25,12 +27,14 @@
           const payload = result.data;
           const nextUrl = new URL(window.location.href);
           nextUrl.searchParams.set('data', encodeURIComponent(JSON.stringify(payload)));
-          nextUrl.searchParams.set('token', token);
+          if (token) nextUrl.searchParams.set('token', token);
+          if (site) nextUrl.searchParams.set('site', site);
           window.history.replaceState({}, '', nextUrl);
           localStorage.setItem('loveWebsiteData', JSON.stringify(payload));
           localStorage.setItem('loveWebsiteDataMap', JSON.stringify({ [payload.name1 + '-' + payload.name2]: payload }));
+          return payload;
         } else {
-          console.warn('Preview token request returned invalid payload:', result);
+          console.warn('Preview request returned invalid payload:', result);
         }
       } catch (error) {
         console.warn('Preview token load failed:', error);
@@ -43,7 +47,7 @@
       console.info('DEV FALLBACK ONLY: using URL JSON preview payload');
     }
 
-    loadPreviewTokenData();
+    window.__previewDataPromise = loadPreviewTokenData();
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
