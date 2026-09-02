@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | Lưu Bút</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fffaf7;
+      --panel: #fff;
+      --text: #2f1b22;
+      --muted: #72636b;
+      --line: rgba(118, 76, 90, 0.12);
+      --brand: #b94d63;
+      --brand-2: #f0c9d2;
+      --success: #1a8a5c;
+      --warning: #876419;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", sans-serif;
+      background: linear-gradient(180deg, #fffaf7 0%, #fff3f5 100%);
+      color: var(--text);
+    }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: 0 18px 48px rgba(88, 40, 58, 0.08);
+      overflow: hidden;
+    }
+    .header {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      background: rgba(251, 241, 244, 0.8);
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: 0.04em;
+    }
+    .status-pill {
+      background: rgba(26, 138, 92, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(26, 138, 92, 0.2);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .content {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 0;
+    }
+    .panel {
+      padding: 32px;
+    }
+    .muted { color: var(--muted); }
+    h1 {
+      margin: 0 0 10px;
+      font-family: "Playfair Display", serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 26px;
+    }
+    .meta-box {
+      background: rgba(242, 250, 248, 0.5);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 16px;
+    }
+    .meta-label {
+      display: block;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .price {
+      font-size: clamp(1.5rem, 3vw, 2.3rem);
+      font-weight: 700;
+      margin-top: 10px;
+    }
+    .bank-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px 18px;
+      margin-top: 24px;
+    }
+    .bank-box h3 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+    .pay-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(118, 76, 90, 0.14);
+      color: var(--muted);
+    }
+    .pay-line:last-child { border-bottom: none; }
+    .pay-line strong { color: var(--text); }
+    .note {
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: rgba(255, 245, 195, 0.38);
+      border: 1px solid rgba(135, 100, 25, 0.22);
+      border-radius: 16px;
+      color: var(--warning);
+      line-height: 1.6;
+    }
+    .side {
+      border-left: 1px solid var(--line);
+      background: rgba(252, 247, 249, 0.7);
+    }
+    .side .panel {
+      padding: 28px 24px;
+    }
+    .summary {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      padding: 18px 16px;
+    }
+    .summary h3 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(118, 76, 90, 0.08);
+      color: var(--muted);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row strong { color: var(--text); }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--brand) 0%, #e5768a 100%);
+      color: white;
+      padding: 14px 22px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .ghost-link {
+      display: inline-block;
+      margin-top: 14px;
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    @media (max-width: 760px) {
+      .content { grid-template-columns: 1fr; }
+      .side { border-left: none; border-top: 1px solid var(--line); }
+      .meta { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <div class="header">
+        <div class="brand">Lưu Bút</div>
+        <div class="status-pill" id="order-status">Pending</div>
+      </div>
+
+      <div class="content">
+        <div class="panel">
+          <p class="muted">Checkout</p>
+          <h1>Đơn hàng của bạn</h1>
+          <p class="muted" id="template-name">Đang tải thông tin mẫu...</p>
+
+          <div class="meta">
+            <div class="meta-box">
+              <span class="meta-label">Mã tham chiếu</span>
+              <strong id="order-reference">-</strong>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Số tiền</span>
+              <div class="price" id="order-amount">0đ</div>
+            </div>
+          </div>
+
+          <div class="bank-box">
+            <h3>Chuyển khoản ngân hàng</h3>
+            <div class="pay-line"><span>Ngân hàng</span><strong>Vietcombank / Techcombank / NCB</strong></div>
+            <div class="pay-line"><span>Chủ tài khoản</span><strong>Lưu Bút Studio</strong></div>
+            <div class="pay-line"><span>Số tài khoản</span><strong>0123456789</strong></div>
+            <div class="pay-line"><span>Nội dung chuyển khoản</span><strong id="transfer-note">-</strong></div>
+            <div class="pay-line"><span>Số tiền</span><strong id="transfer-amount">0đ</strong></div>
+          </div>
+
+          <div class="note">
+            Đây là nền tảng checkout cơ bản cho Phase 3A. Thanh toán hiện đang ở trạng thái chờ xác nhận. Hệ thống sẽ xác minh thanh toán bằng cơ chế server-side trong giai đoạn tiếp theo, không thông qua JavaScript trên browser.
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="panel">
+            <div class="summary">
+              <h3>Tóm tắt đơn</h3>
+              <div class="summary-row"><span>Mẫu</span><strong id="summary-template">-</strong></div>
+              <div class="summary-row"><span>Trạng thái</span><strong id="summary-status">Pending</strong></div>
+              <div class="summary-row"><span>Phương thức</span><strong>Bank transfer</strong></div>
+              <div class="summary-row"><span>Ngày tạo</span><strong id="summary-date">-</strong></div>
+            </div>
+            <a class="button" href="/index.html#templates">Quay lại chọn mẫu</a>
+            <a class="ghost-link" href="/preview.html">Xem preview trước</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function money(value) {
+      const numeric = Number(value || 0);
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numeric);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('order');
+    const reference = params.get('reference') || 'LB-ORDER';
+    const amount = params.get('amount') || '0';
+    const template = params.get('template') || 'Love Story';
+    const status = (params.get('status') || 'pending').toLowerCase();
+    const websiteId = params.get('websiteId') || '';
+
+    const orderStatus = document.getElementById('order-status');
+    const orderReferenceEl = document.getElementById('order-reference');
+    const orderAmountEl = document.getElementById('order-amount');
+    const templateNameEl = document.getElementById('template-name');
+    const transferNoteEl = document.getElementById('transfer-note');
+    const transferAmountEl = document.getElementById('transfer-amount');
+    const summaryTemplateEl = document.getElementById('summary-template');
+    const summaryStatusEl = document.getElementById('summary-status');
+    const summaryDateEl = document.getElementById('summary-date');
+
+    const readableStatus = status === 'paid' ? 'Paid' : status === 'failed' ? 'Failed' : status === 'cancelled' ? 'Cancelled' : 'Pending';
+    orderStatus.textContent = readableStatus;
+    orderStatus.style.background = readableStatus === 'Pending' ? 'rgba(26, 138, 92, 0.12)' : 'rgba(185, 77, 99, 0.12)';
+    orderStatus.style.color = readableStatus === 'Pending' ? '#1a8a5c' : '#b94d63';
+    orderStatus.style.borderColor = readableStatus === 'Pending' ? 'rgba(26, 138, 92, 0.2)' : 'rgba(185, 77, 99, 0.16)';
+
+    orderReferenceEl.textContent = reference;
+    orderAmountEl.textContent = money(amount);
+    templateNameEl.textContent = `Mẫu: ${template}`;
+    transferNoteEl.textContent = reference;
+    transferAmountEl.textContent = money(amount);
+    summaryTemplateEl.textContent = template;
+    summaryStatusEl.textContent = readableStatus;
+    summaryDateEl.textContent = new Date().toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+
+    const idText = orderId ? `#${orderId.slice(0, 8)}` : 'Đang chờ xác nhận';
+    document.title = `Checkout ${reference} | Lưu Bút`;
+    document.getElementById('order-reference').title = idText;
+  </script>
+</body>
+</html>
