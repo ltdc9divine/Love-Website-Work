@@ -8,6 +8,42 @@
       next.search = params.toString();
       window.location.replace(next.toString());
     }
+
+    const loadPreviewTokenData = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token') || window.location.pathname.split('/').filter(Boolean).pop();
+      if (!token) return;
+
+      try {
+        const response = await fetch(`/api/preview?token=${encodeURIComponent(token)}`);
+        if (!response.ok) {
+          console.warn('Preview token request failed:', response.status);
+          return;
+        }
+        const result = await response.json();
+        if (result && result.success && result.data) {
+          const payload = result.data;
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('data', encodeURIComponent(JSON.stringify(payload)));
+          nextUrl.searchParams.set('token', token);
+          window.history.replaceState({}, '', nextUrl);
+          localStorage.setItem('loveWebsiteData', JSON.stringify(payload));
+          localStorage.setItem('loveWebsiteDataMap', JSON.stringify({ [payload.name1 + '-' + payload.name2]: payload }));
+        } else {
+          console.warn('Preview token request returned invalid payload:', result);
+        }
+      } catch (error) {
+        console.warn('Preview token load failed:', error);
+      }
+    };
+
+    // DEV FALLBACK ONLY
+    // Production preview uses /api/preview/:token
+    if (window.location.search.includes('data=')) {
+      console.info('DEV FALLBACK ONLY: using URL JSON preview payload');
+    }
+
+    loadPreviewTokenData();
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,6 +60,7 @@
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
   <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="fixed-heart-rain" id="fixed-heart-rain" aria-hidden="true"></div>
   <div class="touch-hearts" id="touch-hearts" aria-hidden="true"></div>
 
   <main class="love-screen">

@@ -40,32 +40,58 @@ let counterTimer;
 
 function normalizeRecord(record = {}) {
   const item = { ...coupleData, ...record };
-  item.album = Array.isArray(record.album) ? record.album.filter(Boolean) : Array.isArray(record.photos) ? record.photos.filter(Boolean) : [];
+  item.album = Array.isArray(record.album)
+    ? record.album.filter(Boolean)
+    : Array.isArray(record.photos)
+      ? record.photos.filter(Boolean)
+      : [];
   item.timeline = Array.isArray(record.timeline) && record.timeline.length ? record.timeline : coupleData.timeline;
   item.name1 = record.name1 || record.senderName || coupleData.name1;
   item.name2 = record.name2 || record.receiverName || coupleData.name2;
   item.startDate = record.startDate || record.specialDate || coupleData.startDate;
-  item.message = record.message || coupleData.message;
+  item.message = record.message || record.shortMessage || coupleData.message;
   item.loveLetter = record.loveLetter || record.letter || coupleData.loveLetter;
-  item.finalMessage = record.finalMessage || coupleData.finalMessage;
-  item.photo1 = record.photo1 || record.senderPhoto || coupleData.photo1;
-  item.photo2 = record.photo2 || record.receiverPhoto || coupleData.photo2;
+  item.finalMessage = record.finalMessage || record.finalMessage || coupleData.finalMessage;
+  item.photo1 = record.photo1 || record.avatar1 || record.senderPhoto || coupleData.photo1;
+  item.photo2 = record.photo2 || record.avatar2 || record.receiverPhoto || coupleData.photo2;
+  item.musicUrl = record.musicUrl || record.musicData || '';
+  if (record.musicMode) item.musicMode = record.musicMode;
   return item;
+}
+
+function getPreviewDataFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const encodedData = urlParams.get('data');
+  const slug = urlParams.get('slug');
+  const mapRaw = localStorage.getItem(STORAGE_MAP_KEY);
+  const mapData = mapRaw ? JSON.parse(mapRaw) : {};
+
+  if (encodedData) {
+    try {
+      return normalizeRecord(JSON.parse(decodeURIComponent(encodedData)));
+    } catch {
+      return null;
+    }
+  }
+
+  if (slug && mapData[slug]) {
+    return normalizeRecord(mapData[slug]);
+  }
+
+  return null;
 }
 
 function loadData() {
   const urlParams = new URLSearchParams(window.location.search);
   const demoMode = urlParams.get('demo') === '1' || window.location.pathname.endsWith('demo.html');
-  const slug = urlParams.get('slug');
-  const mapRaw = localStorage.getItem(STORAGE_MAP_KEY);
-  const mapData = mapRaw ? JSON.parse(mapRaw) : {};
+  const previewData = getPreviewDataFromUrl();
 
-  if (demoMode && !slug) {
-    return normalizeRecord(coupleData);
+  if (previewData) {
+    return previewData;
   }
 
-  if (slug && mapData[slug]) {
-    return normalizeRecord(mapData[slug]);
+  if (demoMode) {
+    return normalizeRecord(coupleData);
   }
 
   const currentRaw = localStorage.getItem(STORAGE_KEY);
@@ -77,7 +103,7 @@ function loadData() {
     }
   }
 
-  return normalizeRecord(coupleData);
+  return { ...normalizeRecord(coupleData), __missingData: true };
 }
 
 function renderCounter() {
@@ -190,55 +216,119 @@ function renderMusic() {
   });
 }
 
-let floatingHeartsTimer = null;
+const HEART_GLYPHS = ['♥', '♡', '♥', '♡'];
+let heartRainPool = [];
+let heartRainFrameId = null;
+let heartRainLastTime = 0;
 
-function createFloatingHearts() {
-  const container = $('#floating-hearts') || $('#touch-hearts');
-  if (!container) return;
+function recycleHeartRainItem(item, width, height) {
+  const heartSize = 10 + Math.random() * 14 + (Math.random() > 0.92 ? 12 : 0);
+  const opacity = 0.42 + Math.random() * 0.46;
+  const speed = 36 + Math.random() * 82;
+  const sway = 14 + Math.random() * 30;
+  const phase = Math.random() * Math.PI * 2;
+  item.size = heartSize;
+  item.opacity = opacity;
+  item.speed = speed;
+  item.sway = sway;
+  item.phase = phase;
+  item.startX = Math.random() * Math.max(width - heartSize, 1);
+  item.x = item.startX;
+  item.y = -heartSize - Math.random() * (height * 0.38);
+  item.rotation = -18 + Math.random() * 36;
+  item.drift = 0.7 + Math.random() * 1.5;
+  item.el.textContent = HEART_GLYPHS[Math.floor(Math.random() * HEART_GLYPHS.length)];
+  item.el.classList.toggle('is-outline', Math.random() > 0.7);
+  item.el.style.setProperty('--heart-size', `${heartSize}px`);
+  item.el.style.setProperty('--heart-opacity', opacity.toFixed(3));
+  item.el.style.opacity = opacity.toFixed(3);
+  item.el.style.transform = `translate3d(${item.x}px, ${item.y}px, 0) rotate(${item.rotation}deg)`;
+}
 
-  const spawnBurst = window.innerWidth < 480 ? 12 : 18;
-  const maxHearts = window.innerWidth < 480 ? 62 : 96;
+function initHeartRain() {
+  const container = document.getElementById('fixed-heart-rain');
+  if (!container || prefersReducedMotion) return;
 
-  const spawnHeart = () => {
-    const activeHearts = container.querySelectorAll('.floating-heart');
-    if (activeHearts.length >= maxHearts) {
-      activeHearts[0].remove();
+  const isMobile = window.matchMedia('(max-width: 480px)').matches;
+  const targetHearts = isMobile ? 12 : 20;
+
+  if (heartRainPool.length === 0) {
+    for (let i = 0; i < targetHearts; i += 1) {
+      const el = document.createElement('span');
+      el.className = 'heart-rain-item';
+      el.setAttribute('aria-hidden', 'true');
+      el.textContent = HEART_GLYPHS[Math.floor(Math.random() * HEART_GLYPHS.length)];
+      container.appendChild(el);
+      heartRainPool.push({ el, x: 0, y: 0, size: 12, opacity: 0.6, speed: 30, sway: 20, startX: 0, phase: Math.random() * Math.PI, rotation: 0, drift: 1 });
+      recycleHeartRainItem(heartRainPool[heartRainPool.length - 1], window.innerWidth, window.innerHeight);
+    }
+  }
+
+  const animate = (timestamp) => {
+    if (document.hidden) {
+      heartRainFrameId = null;
+      return;
     }
 
-    const heart = document.createElement('span');
-    const symbols = ['♡', '♥', '♡', '♥', '♡'];
-    heart.className = 'floating-heart';
-    heart.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const deltaSeconds = ((timestamp - heartRainLastTime) || 16.67) / 1000;
+    heartRainLastTime = timestamp;
 
-    const left = Math.random() * 100;
-    const driftX = (-180 + Math.random() * 360).toFixed(2);
-    const duration = 6 + Math.random() * 7;
+    for (const item of heartRainPool) {
+      item.y += item.speed * deltaSeconds;
+      item.x = item.startX + Math.sin(timestamp * 0.0011 * item.drift + item.phase) * item.sway;
+      const wobble = Math.sin(timestamp * 0.0018 + item.phase) * 6;
+      item.el.style.opacity = item.opacity.toFixed(3);
+      item.el.style.transform = `translate3d(${item.x}px, ${item.y}px, 0) rotate(${item.rotation + wobble}deg)`;
 
-    heart.style.left = `${left}%`;
-    heart.style.bottom = '-18%';
-    heart.style.animationDuration = `${duration}s`;
-    heart.style.animationDelay = `${Math.random() * 1.8}s`;
-    heart.style.opacity = `${0.8 + Math.random() * 0.2}`;
-    heart.style.fontSize = `${24 + Math.random() * 34}px`;
-    heart.style.setProperty('--drift-x', `${driftX}px`);
+      if (item.y > height + item.size * 2) {
+        recycleHeartRainItem(item, width, height);
+      }
+    }
 
-    heart.addEventListener('animationend', () => heart.remove());
-    container.appendChild(heart);
+    heartRainFrameId = window.requestAnimationFrame(animate);
   };
 
-  for (let i = 0; i < spawnBurst; i += 1) {
-    spawnHeart();
+  if (heartRainFrameId !== null) {
+    window.cancelAnimationFrame(heartRainFrameId);
   }
 
-  if (floatingHeartsTimer) {
-    clearInterval(floatingHeartsTimer);
-  }
+  heartRainFrameId = window.requestAnimationFrame(animate);
+}
 
-  floatingHeartsTimer = setInterval(() => {
-    for (let i = 0; i < spawnBurst; i += 1) {
-      spawnHeart();
+function resizeHeartRain() {
+  const container = document.getElementById('fixed-heart-rain');
+  if (!container || prefersReducedMotion) return;
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const isMobile = width <= 480;
+  const targetHearts = isMobile ? 12 : 20;
+
+  if (heartRainPool.length < targetHearts) {
+    while (heartRainPool.length < targetHearts) {
+      const el = document.createElement('span');
+      el.className = 'heart-rain-item';
+      el.setAttribute('aria-hidden', 'true');
+      container.appendChild(el);
+      const item = { el, x: 0, y: 0, size: 12, opacity: 0.6, speed: 30, sway: 20, startX: 0, phase: Math.random() * Math.PI, rotation: 0, drift: 1 };
+      heartRainPool.push(item);
+      recycleHeartRainItem(item, width, height);
     }
-  }, 220);
+  }
+
+  if (heartRainPool.length > targetHearts) {
+    const overflow = heartRainPool.length - targetHearts;
+    for (let i = 0; i < overflow; i += 1) {
+      const removed = heartRainPool.pop();
+      if (removed) removed.el.remove();
+    }
+  }
+
+  for (const item of heartRainPool) {
+    recycleHeartRainItem(item, width, height);
+  }
 }
 
 function setupRevealObserver() {
@@ -274,6 +364,13 @@ function renderPage() {
   const receiverPhoto = $('#result-receiver-photo');
   if (senderPhoto) senderPhoto.src = currentData.photo1 || coupleData.photo1;
   if (receiverPhoto) receiverPhoto.src = currentData.photo2 || coupleData.photo2;
+
+  const previewName = $('#result-sender-name');
+  const previewPartner = $('#result-receiver-name');
+  if (previewName && previewPartner) {
+    previewName.textContent = currentData.name1 || 'Minh';
+    previewPartner.textContent = currentData.name2 || 'Ngọc';
+  }
 
   renderCounter();
   renderAlbum();
@@ -389,6 +486,19 @@ if (!prefersReducedMotion) {
   });
 }
 
-createFloatingHearts();
-window.addEventListener('resize', createFloatingHearts);
+initHeartRain();
+window.addEventListener('resize', resizeHeartRain);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (heartRainFrameId !== null) {
+      window.cancelAnimationFrame(heartRainFrameId);
+      heartRainFrameId = null;
+    }
+    return;
+  }
+
+  if (!prefersReducedMotion) {
+    initHeartRain();
+  }
+});
 renderPage();

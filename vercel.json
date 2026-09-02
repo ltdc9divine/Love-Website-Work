@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/preview/:token", "destination": "/preview.html?token=:token" },
+    { "source": "/preview", "destination": "/preview.html" }
+  ]
+}

@@ -528,6 +528,39 @@ p {
 .lightbox-arrow.previous { left: 20px; }
 .lightbox-arrow.next { right: 20px; }
 
+.fixed-heart-rain {
+  position: fixed;
+  inset: -10% 0 0 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout paint;
+  background: radial-gradient(circle at 30% 0%, rgba(255, 201, 212, 0.12), transparent 38%);
+}
+
+.heart-rain-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--heart-size, 14px);
+  line-height: 1;
+  color: rgba(255, 170, 195, var(--heart-opacity, 0.7));
+  opacity: var(--heart-opacity, 0.7);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7), 0 0 22px rgba(255, 120, 158, 0.9), 0 0 30px rgba(255, 116, 156, 0.55);
+  user-select: none;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  filter: saturate(1.15);
+  mix-blend-mode: screen;
+}
+
+.heart-rain-item.is-outline {
+  color: rgba(255, 215, 225, 0.5);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 160, 184, 0.45);
+}
+
 .floating-hearts,
 .touch-hearts {
   position: fixed;
