@@ -1,6 +1,10 @@
 .env
 .env.local
 .env.*.local
+node_modules/
+supabase/.temp/
 
 # Keep example env config tracked
 !.env.example
+.vercel
+.env*

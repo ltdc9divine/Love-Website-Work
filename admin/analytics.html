@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Analytics | Lưu Bút</title>
+    <style>
+      :root {
+        --bg: #fffaf6;
+        --panel: #ffffff;
+        --panel-alt: #fff0f5;
+        --border: rgba(108, 74, 87, 0.12);
+        --text: #2f1b21;
+        --muted: #6d5862;
+        --rose: #d56a8d;
+        --rose-dark: #b84c75;
+        --gold: #e9b25d;
+        --green: #2d9d78;
+        --shadow: 0 20px 50px rgba(76, 41, 58, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #fffaf8 0%, #fff0f5 100%);
+        color: var(--text);
+      }
+
+      .shell {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .token-box {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      input {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 10px 16px;
+        min-width: 220px;
+        font: inherit;
+        background: rgba(255,255,255,0.7);
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--rose) 0%, var(--rose-dark) 100%);
+        color: white;
+        cursor: pointer;
+        font: inherit;
+        padding: 10px 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .card .label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .card .value {
+        margin-top: 12px;
+        font-size: clamp(1.8rem, 2vw, 2.5rem);
+        font-weight: 700;
+      }
+
+      .sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: 1.1rem;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      li {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(108, 74, 87, 0.08);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .error {
+        color: #8a2d4a;
+        background: #fff2f5;
+        border: 1px solid rgba(138,45,74,0.12);
+        padding: 12px 14px;
+        border-radius: 14px;
+        margin-bottom: 18px;
+        display: none;
+      }
+
+      .daily-chart {
+        display: grid;
+        gap: 10px;
+      }
+
+      .daily-row {
+        display: grid;
+        grid-template-columns: 88px 1fr 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #f7d2df 0%, #e59bb5 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">Lưu Bút Analytics</div>
+        <div class="token-box">
+          <input id="adminToken" type="password" placeholder="Admin token" aria-label="Admin token" />
+          <button id="loadAnalytics" type="button">Load analytics</button>
+        </div>
+      </div>
+
+      <div id="errorBox" class="error" role="alert"></div>
+
+      <div class="grid" id="statsGrid"></div>
+
+      <div class="sections">
+        <div class="panel">
+          <h2>Top pages</h2>
+          <ul id="topPages"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>Top templates</h2>
+          <ul id="topTemplates"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>Traffic sources</h2>
+          <ul id="trafficSources"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>Daily visitors & page views</h2>
+          <div id="dailyChart" class="daily-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const statsGrid = document.getElementById('statsGrid');
+      const topPages = document.getElementById('topPages');
+      const topTemplates = document.getElementById('topTemplates');
+      const trafficSources = document.getElementById('trafficSources');
+      const dailyChart = document.getElementById('dailyChart');
+      const errorBox = document.getElementById('errorBox');
+
+      function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+      }
+
+      function hideError() {
+        errorBox.style.display = 'none';
+      }
+
+      function renderStats(stats) {
+        const cards = [
+          ['Unique Visitors', stats.unique_visitors],
+          ['Page Views', stats.total_page_views],
+          ['Sessions', stats.sessions],
+          ['Buy Clicks', stats.buy_clicks],
+          ['Successful Payments', stats.successful_payments],
+          ['Websites Created', stats.websites_created]
+        ];
+
+        statsGrid.innerHTML = cards.map(([label, value]) => `
+          <div class="card">
+            <div class="label">${label}</div>
+            <div class="value">${value}</div>
+          </div>
+        `).join('');
+      }
+
+      function renderList(target, items, fallbackText) {
+        if (!items || !items.length) {
+          target.innerHTML = `<li class="muted">${fallbackText}</li>`;
+          return;
+        }
+
+        target.innerHTML = items.map((item) => `
+          <li>
+            <span>${item.name || 'Unknown'}</span>
+            <strong>${item.count}</strong>
+          </li>
+        `).join('');
+      }
+
+      function renderDailyChart(items) {
+        if (!items || !items.length) {
+          dailyChart.innerHTML = '<div class="muted">No data yet.</div>';
+          return;
+        }
+
+        const maxPageViews = Math.max(...items.map((item) => item.page_views || 0), 1);
+        dailyChart.innerHTML = items.map((item) => `
+          <div class="daily-row">
+            <span class="muted">${item.date.slice(5)}</span>
+            <div class="bar" style="width:${((item.page_views || 0) / maxPageViews) * 100}%"></div>
+            <strong>${item.page_views} / ${item.unique_visitors}</strong>
+          </div>
+        `).join('');
+      }
+
+      async function loadAnalytics() {
+        hideError();
+        const token = document.getElementById('adminToken').value.trim();
+
+        try {
+          const response = await fetch('/api/analytics?range=7d', {
+            headers: token ? { 'X-Admin-Token': token } : {}
+          });
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Unable to load analytics.');
+          }
+
+          renderStats(result.stats || {});
+          renderList(topPages, result.top_pages, 'No page activity yet.');
+          renderList(topTemplates, result.top_templates, 'No template activity yet.');
+          renderList(trafficSources, result.traffic_sources, 'No traffic source data yet.');
+          renderDailyChart(result.daily_page_views || []);
+        } catch (error) {
+          showError(error.message || 'Unable to load analytics.');
+        }
+      }
+
+      document.getElementById('loadAnalytics').addEventListener('click', loadAnalytics);
+      loadAnalytics();
+    </script>
+  </body>
+</html>
