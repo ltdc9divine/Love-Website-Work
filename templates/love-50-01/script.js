@@ -362,8 +362,8 @@ function renderPage() {
 
   const senderPhoto = $('#result-sender-photo');
   const receiverPhoto = $('#result-receiver-photo');
-  if (senderPhoto) senderPhoto.src = currentData.photo1 || coupleData.photo1;
-  if (receiverPhoto) receiverPhoto.src = currentData.photo2 || coupleData.photo2;
+  if (senderPhoto) senderPhoto.src = currentData.photo1 || (window.__serverPreviewRequested ? '' : coupleData.photo1);
+  if (receiverPhoto) receiverPhoto.src = currentData.photo2 || (window.__serverPreviewRequested ? '' : coupleData.photo2);
 
   const previewName = $('#result-sender-name');
   const previewPartner = $('#result-receiver-name');
@@ -414,6 +414,10 @@ function renderPage() {
       musicToggle.textContent = '▶';
     });
   }
+}
+
+function renderMissingCanonicalData() {
+  document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:DM Sans,sans-serif;color:#432b35"><section><h1>Không thể tải website</h1><p>Website này chưa sẵn sàng hoặc dữ liệu không còn khả dụng. Vui lòng thử lại sau.</p></section></main>';
 }
 
 function formatDate(value) {
@@ -501,8 +505,11 @@ document.addEventListener('visibilitychange', () => {
     initHeartRain();
   }
 });
-if (window.__previewDataPromise) {
-  window.__previewDataPromise.then(() => renderPage());
+if (window.__serverPreviewRequested && window.__previewDataPromise) {
+  window.__previewDataPromise.then((payload) => {
+    if (payload) renderPage();
+    else renderMissingCanonicalData();
+  });
 } else {
   renderPage();
 }
