@@ -17,7 +17,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script>
     const previewParams = new URLSearchParams(window.location.search);
-    const previewToken = previewParams.get('token');
+    const routeToken = window.location.pathname.startsWith('/preview/')
+      ? decodeURIComponent(window.location.pathname.slice('/preview/'.length).split('/')[0])
+      : '';
+    const previewToken = previewParams.get('token') || routeToken;
     const previewSite = previewParams.get('site');
     const previewDemo = previewParams.get('demo') === '1';
 
