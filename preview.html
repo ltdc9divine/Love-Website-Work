@@ -20,8 +20,11 @@
     const routeToken = window.location.pathname.startsWith('/preview/')
       ? decodeURIComponent(window.location.pathname.slice('/preview/'.length).split('/')[0])
       : '';
+    const routeSite = window.location.pathname.startsWith('/p/')
+      ? decodeURIComponent(window.location.pathname.slice('/p/'.length).split('/')[0])
+      : '';
     const previewToken = previewParams.get('token') || routeToken;
-    const previewSite = previewParams.get('site');
+    const previewSite = previewParams.get('site') || routeSite;
     const previewDemo = previewParams.get('demo') === '1';
 
     function templatePath(templateId) {
