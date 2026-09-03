@@ -4,7 +4,7 @@ const {
   generateWebsiteSlug,
   generatePreviewToken,
   supabaseRequest
-} = require('./lib/supabase');
+} = require('../server-lib/supabase');
 
 async function findTemplateBySlug(templateId) {
   const templateQuery = `/rest/v1/templates?slug=eq.${encodeURIComponent(String(templateId).trim())}&select=*`;

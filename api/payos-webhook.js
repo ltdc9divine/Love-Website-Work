@@ -1,5 +1,5 @@
-const { supabaseRequest, parseJsonBody } = require('./lib/supabase');
-const { createPayOSClient, getPayOSConfig, normalizeOrderReference } = require('./lib/payment');
+const { supabaseRequest, parseJsonBody } = require('../server-lib/supabase');
+const { createPayOSClient, getPayOSConfig, normalizeOrderReference } = require('../server-lib/payment');
 
 async function findOrderByCode(orderCode) {
   const rows = await supabaseRequest({

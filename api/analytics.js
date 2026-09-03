@@ -1,4 +1,4 @@
-const { supabaseRequest, getEnv } = require('./lib/supabase');
+const { supabaseRequest, getEnv } = require('../server-lib/supabase');
 
 function parseDateWindow(rawRange) {
   const now = new Date();

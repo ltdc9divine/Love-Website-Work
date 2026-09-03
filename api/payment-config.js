@@ -1,4 +1,4 @@
-const { getBankConfig, getPayOSConfig, isPayOSConfigured } = require('./lib/payment');
+const { getBankConfig, getPayOSConfig, isPayOSConfigured } = require('../server-lib/payment');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {

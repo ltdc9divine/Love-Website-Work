@@ -1,4 +1,4 @@
-const { supabaseRequest } = require('./lib/supabase');
+const { supabaseRequest } = require('../server-lib/supabase');
 
 const VALID_EVENT_NAMES = new Set([
   'page_view',

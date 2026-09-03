@@ -4,8 +4,8 @@ const path = require('path');
 
 function loadDotEnvFiles() {
   const candidates = [
-    path.join(__dirname, '..', '..', '.env.local'),
-    path.join(__dirname, '..', '..', '.env')
+    path.join(__dirname, '..', '.env.local'),
+    path.join(__dirname, '..', '.env')
   ];
 
   for (const filePath of candidates) {

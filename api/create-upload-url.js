@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { getEnv, requireSupabaseSettings, buildSupabaseUrl, parseJsonBody } = require('./lib/supabase');
+const { getEnv, requireSupabaseSettings, buildSupabaseUrl, parseJsonBody } = require('../server-lib/supabase');
 
 const ALLOWED_TYPES = new Map([
   ['image/jpeg', 'jpg'],

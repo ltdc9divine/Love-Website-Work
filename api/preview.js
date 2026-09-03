@@ -1,4 +1,4 @@
-const { supabaseRequest, buildCanonicalWebsitePayload } = require('./lib/supabase');
+const { supabaseRequest, buildCanonicalWebsitePayload } = require('../server-lib/supabase');
 
 async function findWebsiteByPreviewToken(token) {
   if (!token) {

@@ -1,4 +1,4 @@
-const { supabaseRequest, parseJsonBody } = require('./lib/supabase');
+const { supabaseRequest, parseJsonBody } = require('../server-lib/supabase');
 
 const PAYMENT_METHOD = 'bank_transfer';
 const PAYMENT_STATUS_PENDING = 'pending';
