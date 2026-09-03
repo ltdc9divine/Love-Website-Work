@@ -28,7 +28,32 @@
 
     async function loadCanonicalPreview() {
       if (previewDemo) {
-        return { templateId: previewParams.get('template') || 'love-50-01', demo: true };
+        return {
+          templateId: previewParams.get('template') || 'love-50-01',
+          demo: true,
+          name1: 'Minh',
+          name2: 'Ngọc',
+          shortMessage: 'Mỗi khoảnh khắc bên nhau đều là một điều đáng nhớ.',
+          loveLetter: 'Một chút yêu thương dành cho ngày đặc biệt của chúng mình.',
+          startDate: '2025-02-14',
+          finalMessage: 'Yêu em hơn mỗi ngày.',
+          photos: [],
+          timeline: []
+        };
+      }
+
+      const serializedData = previewParams.get('data');
+      if (serializedData) {
+        let customerData;
+        try {
+          customerData = JSON.parse(serializedData);
+        } catch (error) {
+          throw new Error('Preview data is invalid.');
+        }
+        if (!customerData || typeof customerData !== 'object' || !customerData.templateId) {
+          throw new Error('Preview data is unavailable.');
+        }
+        return customerData;
       }
 
       const query = previewToken
@@ -55,6 +80,7 @@
       const documentTemplate = new DOMParser().parseFromString(templateHtml, 'text/html');
       document.title = documentTemplate.title || 'Lưu Bút';
       document.body.innerHTML = documentTemplate.body.innerHTML;
+      document.body.querySelectorAll('script').forEach((node) => node.remove());
       document.querySelectorAll('link[data-template-asset], script[data-template-asset]').forEach((node) => node.remove());
       documentTemplate.head.querySelectorAll('link[rel="stylesheet"]').forEach((source) => {
         const link = document.createElement('link');

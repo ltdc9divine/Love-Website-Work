@@ -105,7 +105,7 @@ initializeRoute();
 function renderTemplate(templateId, customerData = {}) {
   const template = templateRegistry.find((item) => item.id === templateId);
   if (!template) throw new Error(`Template không tồn tại: ${templateId}`);
-  return { templateId, customerData, previewUrl: template.demoUrl, schema: template.schema };
+  return { templateId, customerData, previewUrl: template.preview, schema: template.schema };
 }
 
 const paymentProvider = {

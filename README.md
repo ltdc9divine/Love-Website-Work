@@ -15,7 +15,7 @@ Mở `index.html` trực tiếp bằng trình duyệt hoặc dùng Live Server t
 - `templates/love-150/`: thư mục chứa 10 mẫu tier 150K, không bị platform này sửa đổi.
 - `templates/love-300/` và `templates/love-500/`: thư mục chứa mẫu premium 300K và 500K theo cùng contract dữ liệu.
 
-Thêm template mới bằng cách thêm object vào `templateRegistry` với `id`, `name`, `category`, `price`, `description`, `demoUrl`, `enabled`, `features` và `schema`. Homepage sẽ tự render card. `schema` là nguồn để form engine sinh các field riêng cho từng template.
+Thêm template mới bằng cách thêm object vào `templateRegistry` với `id`, `name`, `category`, `price`, `description`, `preview`, `path`, `enabled`, `features` và `schema`. Homepage sẽ tự render card. `schema` là nguồn để form engine sinh các field riêng cho từng template.
 
 ## Flow development hiện tại
 
