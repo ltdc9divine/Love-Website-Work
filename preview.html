@@ -1,55 +1,6 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <script>
-    if (window.location.protocol === 'file:') {
-      const params = new URLSearchParams(window.location.search);
-      const next = new URL('http://localhost:8000/preview.html');
-      next.search = params.toString();
-      window.location.replace(next.toString());
-    }
-
-    const loadPreviewTokenData = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
-      const site = params.get('site');
-      const lookup = token ? `token=${encodeURIComponent(token)}` : site ? `site=${encodeURIComponent(site)}` : '';
-      window.__serverPreviewRequested = Boolean(lookup);
-      if (!lookup) return;
-
-      try {
-        const response = await fetch(`/api/preview?${lookup}`);
-        if (!response.ok) {
-          console.warn('Preview request failed:', response.status);
-          return;
-        }
-        const result = await response.json();
-        if (result && result.success && result.data) {
-          const payload = result.data;
-          const nextUrl = new URL(window.location.href);
-          nextUrl.searchParams.set('data', encodeURIComponent(JSON.stringify(payload)));
-          if (token) nextUrl.searchParams.set('token', token);
-          if (site) nextUrl.searchParams.set('site', site);
-          window.history.replaceState({}, '', nextUrl);
-          localStorage.setItem('loveWebsiteData', JSON.stringify(payload));
-          localStorage.setItem('loveWebsiteDataMap', JSON.stringify({ [payload.name1 + '-' + payload.name2]: payload }));
-          return payload;
-        } else {
-          console.warn('Preview request returned invalid payload:', result);
-        }
-      } catch (error) {
-        console.warn('Preview token load failed:', error);
-      }
-    };
-
-    // DEV FALLBACK ONLY
-    // Production preview uses /api/preview/:token
-    if (window.location.search.includes('data=')) {
-      console.info('DEV FALLBACK ONLY: using URL JSON preview payload');
-    }
-
-    window.__previewDataPromise = loadPreviewTokenData();
-  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#fff5f1" />
@@ -58,14 +9,80 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/templates/love-50-01/style.css" />
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script src="/tracking.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-  <script src="/templates/love-50-01/script.js" defer></script>
+  <script>
+    const previewParams = new URLSearchParams(window.location.search);
+    const previewToken = previewParams.get('token');
+    const previewSite = previewParams.get('site');
+    const previewDemo = previewParams.get('demo') === '1';
+
+    function templatePath(templateId) {
+      const parts = String(templateId || 'love-50-01').split('-');
+      return `/templates/love-${parts[1]}/${encodeURIComponent(templateId)}`;
+    }
+
+    async function loadCanonicalPreview() {
+      if (previewDemo) {
+        return { templateId: previewParams.get('template') || 'love-50-01', demo: true };
+      }
+
+      const query = previewToken
+        ? `token=${encodeURIComponent(previewToken)}`
+        : previewSite
+          ? `site=${encodeURIComponent(previewSite)}`
+          : '';
+      if (!query) return null;
+
+      const response = await fetch(`/api/preview?${query}`);
+      if (!response.ok) throw new Error(`Preview data request failed (${response.status}).`);
+      const result = await response.json();
+      if (!result || !result.success || !result.data) throw new Error('Preview data is unavailable.');
+      return result.data;
+    }
+
+    async function loadTemplate() {
+      const payload = await loadCanonicalPreview();
+      if (!payload) return null;
+      const basePath = templatePath(payload.templateId);
+      const templateResponse = await fetch(`${basePath}/index.html`);
+      if (!templateResponse.ok) throw new Error(`Template HTML request failed (${templateResponse.status}).`);
+      const templateHtml = await templateResponse.text();
+      const documentTemplate = new DOMParser().parseFromString(templateHtml, 'text/html');
+      document.title = documentTemplate.title || 'Lưu Bút';
+      document.body.innerHTML = documentTemplate.body.innerHTML;
+      document.querySelectorAll('link[data-template-asset], script[data-template-asset]').forEach((node) => node.remove());
+      documentTemplate.head.querySelectorAll('link[rel="stylesheet"]').forEach((source) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = new URL(source.getAttribute('href'), `${window.location.origin}${basePath}/`).href;
+        link.dataset.templateAsset = 'true';
+        document.head.appendChild(link);
+      });
+      window.__LuuButCanonicalData = payload;
+      const configScript = document.createElement('script');
+      configScript.src = `${basePath}/config.js`;
+      configScript.dataset.templateAsset = 'true';
+      document.head.appendChild(configScript);
+      await new Promise((resolve, reject) => { configScript.onload = resolve; configScript.onerror = reject; });
+      const templateScript = document.createElement('script');
+      templateScript.src = `${basePath}/script.js`;
+      templateScript.dataset.templateAsset = 'true';
+      document.body.appendChild(templateScript);
+      await new Promise((resolve, reject) => { templateScript.onload = resolve; templateScript.onerror = reject; });
+      return payload;
+    }
+
+    window.__previewDataPromise = loadTemplate().catch((error) => {
+      console.error('Template preview failed:', error);
+      document.body.innerHTML = '<main style="padding:32px;text-align:center"><h1>Không thể tải template</h1><p>Website chưa sẵn sàng để hiển thị.</p></main>';
+      return null;
+    });
+  </script>
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>

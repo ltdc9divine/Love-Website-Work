@@ -1,9 +1,5 @@
-// --- Catalog / create / preview mock layer (development only) ---
-const templateRegistry = [
-  { id: 'love-50-01', name: 'Love Story', category: 'love', categoryLabel: 'Tình yêu', price: 50000, description: 'Chuyện tình của chúng mình, được kể bằng ảnh, thư và những nhịp tim.', thumbnail: 'love', demoUrl: 'demo.html?template=love-50-01', enabled: true, badge: 'Được yêu thích', features: ['Màn hình mở đầu', 'Bộ đếm ngày yêu', 'Album tối đa 6 ảnh', 'Lá thư tình', 'Nhạc tùy chọn', 'QR Code kỷ niệm'], schema: [{ id: 'name1', label: 'Tên người thứ nhất', type: 'text', required: true, placeholder: 'Nhập tên của bạn' }, { id: 'name2', label: 'Tên người thứ hai', type: 'text', required: true, placeholder: 'Nhập tên người ấy' }, { id: 'photo1', label: 'Ảnh người thứ nhất', type: 'file', accept: 'image/*' }, { id: 'photo2', label: 'Ảnh người thứ hai', type: 'file', accept: 'image/*' }, { id: 'album', label: 'Album ảnh (tối đa 6)', type: 'file', accept: 'image/*', multiple: true }, { id: 'message', label: 'Lời nhắn ngắn', type: 'textarea', placeholder: 'Một câu dành cho người đặc biệt...' }, { id: 'letter', label: 'Lá thư tình', type: 'textarea', placeholder: 'Viết một bức thư nhỏ...' }, { id: 'startDate', label: 'Ngày bắt đầu yêu / ngày đặc biệt', type: 'date' }, { id: 'music', label: 'Nhạc tùy chọn', type: 'file', accept: 'audio/*' }, { id: 'qrContent', label: 'Nội dung QR (tùy chọn)', type: 'text', placeholder: 'Link hoặc một đoạn text' }] },
-  { id: 'birthday-50-01', name: 'Birthday Note', category: 'birthday', categoryLabel: 'Sinh nhật', price: 50000, description: 'Một tấm thiệp sinh nhật sống động, riêng tư và dễ gửi.', thumbnail: 'birthday', demoUrl: '', enabled: false, badge: 'Sắp ra mắt', features: ['Lời chúc cá nhân', 'Ảnh kỷ niệm', 'Thiệp sinh nhật'], schema: [] },
-  { id: 'wedding-150-01', name: 'Vow & Bloom', category: 'wedding', categoryLabel: 'Đám cưới', price: 150000, description: 'Không gian trang trọng để lưu lại ngày hai người chọn nhau.', thumbnail: 'wedding', demoUrl: '', enabled: false, badge: 'Premium', features: ['Timeline câu chuyện', 'Gallery', 'RSVP'], schema: [] }
-];
+// --- Catalog / create / preview foundation ---
+const templateRegistry = window.LuuButTemplateRegistry || [];
 const categories = [{ id: 'all', label: 'Tất cả' }, { id: 'love', label: '❤️ Tình yêu' }, { id: 'birthday', label: '🎂 Sinh nhật' }, { id: 'memory', label: '💌 Kỷ niệm' }, { id: 'proposal', label: '💍 Cầu hôn' }, { id: 'wedding', label: '💐 Đám cưới' }];
 const STORAGE_KEY = 'luu-but-draft';
 let activeCategory = 'all'; let selectedTemplate; let draft = {};
@@ -55,6 +51,9 @@ function normalizeCustomerData(template, customerData = {}) {
   };
 }
 function buildPreviewUrl(template, customerData = {}) {
+  if (!customerData || Object.keys(customerData).length === 0) {
+    return `preview.html?demo=1&template=${encodeURIComponent(template.id)}`;
+  }
   const previewData = normalizeCustomerData(template, customerData);
   const slug = slugify(`${previewData.name1}-${previewData.name2}`);
   previewData.slug = slug;

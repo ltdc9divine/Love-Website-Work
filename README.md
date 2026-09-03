@@ -11,8 +11,9 @@ Mở `index.html` trực tiếp bằng trình duyệt hoặc dùng Live Server t
 - `index.html`: homepage, preview dialog, builder dialog và order dialog.
 - `platform.css`: giao diện platform, responsive mobile-first.
 - `platform.js`: template registry, category filter, form engine, draft storage và mock order flow.
-- `templates/love-50-01/`: template standalone, không chứa payment/order logic.
-- `templates/love-150/`: sản phẩm riêng, không bị platform này sửa đổi.
+- `templates/love-50/love-50-01/`: template standalone, không chứa payment/order logic.
+- `templates/love-150/`: thư mục chứa 10 mẫu tier 150K, không bị platform này sửa đổi.
+- `templates/love-300/` và `templates/love-500/`: thư mục chứa mẫu premium 300K và 500K theo cùng contract dữ liệu.
 
 Thêm template mới bằng cách thêm object vào `templateRegistry` với `id`, `name`, `category`, `price`, `description`, `demoUrl`, `enabled`, `features` và `schema`. Homepage sẽ tự render card. `schema` là nguồn để form engine sinh các field riêng cho từng template.
 
