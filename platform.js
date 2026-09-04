@@ -59,8 +59,7 @@ function buildPreviewUrl(template, customerData = {}) {
   previewData.slug = slug;
   saveCoupleRecord(previewData);
 
-  const previewPath = window.location.protocol === 'file:' ? 'http://localhost:8000/preview.html' : 'preview.html';
-  return `${previewPath}?slug=${encodeURIComponent(slug)}&template=${encodeURIComponent(template.id)}&data=${encodeURIComponent(JSON.stringify(previewData))}`;
+  return `preview.html?slug=${encodeURIComponent(slug)}&template=${encodeURIComponent(template.id)}&data=${encodeURIComponent(JSON.stringify(previewData))}`;
 }
 function openPreview(id) {
   selectedTemplate = templateRegistry.find((template) => template.id === id);
@@ -80,14 +79,21 @@ function openBuilder(id) {
 /*
 async function handleBuilderSubmit(event) { event.preventDefault(); const formData = new FormData(event.currentTarget); const formValues = {}; const albumFiles = []; for (const [key, value] of formData.entries()) { if (key === 'consent') continue; if (key === 'album') { if (value instanceof File && value.size > 0) albumFiles.push(value); continue; } formValues[key] = value; } try { const fileFields = ['photo1', 'photo2', 'music']; for (const field of fileFields) { const file = formValues[field]; if (file instanceof File && file.size > 0) formValues[field] = await readFileAsDataUrl(file); else if (file instanceof File) formValues[field] = ''; } formValues.album = await Promise.all(albumFiles.map(readFileAsDataUrl)); } catch (error) { console.error('Customer media processing failed:', error); $('#builder-message').textContent = 'Không thể đọc ảnh hoặc nhạc. Vui lòng thử lại.'; return; } const requiredMissing = selectedTemplate.schema.filter((field) => field.required && !formValues[field.id]); if (requiredMissing.length) { $('#builder-message').textContent = `Vui lòng điền: ${requiredMissing.map((field) => field.label).join(', ')}.`; return; } draft = { ...draft, ...formValues, templateId: selectedTemplate.id }; if (window.LuubutAnalytics && window.LuubutAnalytics.track) { window.LuubutAnalytics.track('submit_order', { template_id: selectedTemplate.id, metadata: { source: 'builder_form' } }); } $('#builder-message').textContent = 'Đang tạo preview...'; try { const response = await fetch('/api/create-draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(normalizeCustomerData(selectedTemplate, draft)) }); if (!response.ok) { const errorText = await response.text(); throw new Error(`create-draft HTTP ${response.status}: ${errorText}`); } const result = await response.json(); if (!result.success || !result.websiteId || !result.previewToken) throw new Error(result.error || 'Create-draft returned an incomplete response.'); const previewUrl = result.previewUrl || `/preview/${encodeURIComponent(result.previewToken)}`; try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: result.previewToken, template: selectedTemplate.id, updatedAt: Date.now() })); } catch (storageError) { console.warn('[builder] localStorage unavailable/full; continuing without local draft cache', storageError); } if (window.LuubutAnalytics && window.LuubutAnalytics.track) { window.LuubutAnalytics.track('website_created', { template_id: selectedTemplate.id, website_id: result.websiteId || null, metadata: { preview_url: previewUrl } }); } $('#builder-dialog').close(); $('#preview-iframe').src = previewUrl; $('#preview-dialog').dataset.fromBuilder = 'true'; $('#preview-dialog').dataset.websiteId = result.websiteId || ''; $('#preview-dialog').showModal(); } catch (error) { console.error('Create-draft frontend flow failed:', error); const statusMatch = String(error.message || '').match(/^create-draft HTTP (\d+)/); $('#builder-message').textContent = statusMatch ? `Không thể tạo preview (HTTP ${statusMatch[1]}). Vui lòng kiểm tra kích thước ảnh hoặc nhạc.` : 'Không thể tạo preview từ server. Vui lòng thử lại.'; } }
 */
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `${response.status} ${response.statusText}`);
+  }
+  return await response.json();
+}
+
 async function uploadMediaFile(file, uploadId) {
-  const signResponse = await fetch('/api/create-upload-url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uploadId, fileName: file.name, contentType: file.type, size: file.size }) });
-  if (!signResponse.ok) { const errorText = await signResponse.text(); throw new Error(`media upload preparation HTTP ${signResponse.status}: ${errorText}`); }
-  const upload = await signResponse.json();
-  if (!upload.success || !upload.uploadUrl || !upload.publicUrl) throw new Error(upload.error || 'Media upload preparation returned an incomplete response.');
-  const uploadResponse = await fetch(upload.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+  const signResponse = await fetchJson('/api/create-upload-url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uploadId, fileName: file.name, contentType: file.type, size: file.size }) });
+  if (!signResponse.success || !signResponse.uploadUrl || !signResponse.publicUrl) throw new Error(signResponse.error || 'Media upload preparation returned an incomplete response.');
+  const uploadResponse = await fetch(signResponse.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
   if (!uploadResponse.ok) { const errorText = await uploadResponse.text(); throw new Error(`media upload HTTP ${uploadResponse.status}: ${errorText}`); }
-  return upload.publicUrl;
+  return signResponse.publicUrl;
 }
 
 async function handleBuilderSubmit(event) {
@@ -116,9 +122,7 @@ async function handleBuilderSubmit(event) {
     draft = { ...draft, ...formValues, photo1: photoUrls[0], photo2: photoUrls[1], album: albumUrls, music: musicUrl, templateId: selectedTemplate.id };
     if (window.LuubutAnalytics && window.LuubutAnalytics.track) window.LuubutAnalytics.track('submit_order', { template_id: selectedTemplate.id, metadata: { source: 'builder_form' } });
     $('#builder-message').textContent = 'Đang tạo preview...';
-    const response = await fetch('/api/create-draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(normalizeCustomerData(selectedTemplate, draft)) });
-    if (!response.ok) { const errorText = await response.text(); throw new Error(`create-draft HTTP ${response.status}: ${errorText}`); }
-    const result = await response.json();
+    const result = await fetchJson('/api/create-draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(normalizeCustomerData(selectedTemplate, draft)) });
     if (!result.success || !result.websiteId || !result.previewToken) throw new Error(result.error || 'Create-draft returned an incomplete response.');
     const previewUrl = result.previewUrl || `/preview/${encodeURIComponent(result.previewToken)}`;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: result.previewToken, template: selectedTemplate.id, updatedAt: Date.now() })); } catch (storageError) { console.warn('[builder] localStorage unavailable/full; continuing without local draft cache', storageError); }
@@ -130,18 +134,59 @@ async function handleBuilderSubmit(event) {
   } finally { submitButton.disabled = false; }
 }
 
-function createOrder() { const orderId = `LB-${Date.now().toString(36).toUpperCase()}`; const slug = Math.random().toString(36).slice(2, 8); const order = { orderId, templateId: selectedTemplate.id, customerData: draft, amount: selectedTemplate.price, paymentStatus: 'PENDING', websiteStatus: 'DRAFT', publicSlug: slug, publicUrl: `${location.origin}/p/${slug}`, createdAt: new Date().toISOString(), paidAt: null }; localStorage.setItem(`luu-but-order-${orderId}`, JSON.stringify(order)); return order; }
-function showOrder(mode) { const order = mode === 'preview' ? createOrder() : JSON.parse(localStorage.getItem(mode)); const content = $('#order-content'); if (mode === 'preview') { if (window.LuubutAnalytics && window.LuubutAnalytics.track) { window.LuubutAnalytics.track('click_buy', { template_id: selectedTemplate.id, metadata: { flow: 'preview_order' } }); } content.innerHTML = `<p class="eyebrow">Preview & order</p><h2>Website của bạn đã sẵn sàng để xem.</h2><p>Thông tin đã được lưu dưới dạng draft. Đây là bước kiểm tra trước khi tạo đơn.</p><div class="bank-box"><strong>${selectedTemplate.name} · ${money(order.amount)}</strong><span>Trạng thái website: DRAFT</span><span>Trạng thái thanh toán: PENDING</span></div><div class="order-actions"><button class="button primary" id="confirm-order" type="button">Tạo đơn hàng <span>→</span></button><button class="small-button" id="back-to-builder" type="button">Chỉnh sửa</button></div><p class="mock-warning">Development flow: chưa có payment provider. Không có nút frontend nào được coi là thanh toán thật.</p>`; $('#order-dialog').showModal(); $('#confirm-order').addEventListener('click', () => showOrder(`luu-but-order-${order.orderId}`)); $('#back-to-builder').addEventListener('click', () => { $('#order-dialog').close(); openBuilder(selectedTemplate.id); }); return; } content.innerHTML = `<p class="eyebrow">Order ${order.orderId}</p><h2>Đơn hàng đang chờ thanh toán.</h2><span class="order-status">${order.paymentStatus}</span><p>Trong production, server sẽ xác minh giao dịch qua webhook trước khi chuyển sang PAID.</p><div class="bank-box"><strong>Thông tin chuyển khoản (demo)</strong><span>Ngân hàng: DEMO BANK</span><span>Chủ tài khoản: LUUBUT DEMO</span><span>Nội dung: ${order.orderId}</span><span>Số tiền: ${money(order.amount)}</span></div><div class="order-actions"><button class="button primary" id="dev-paid" type="button">DEV: Mock xác nhận PAID</button></div><p class="mock-warning">Chỉ bật nút này trong development. Không triển khai mock payment ở production.</p>`; $('#order-dialog').showModal(); $('#dev-paid').addEventListener('click', () => publishOrder(order)); }
-function publishOrder(order) {
-  order.paymentStatus = 'PAID'; order.websiteStatus = 'PUBLISHED'; order.paidAt = new Date().toISOString();
-  localStorage.setItem(`luu-but-order-${order.orderId}`, JSON.stringify(order));
-  if (window.LuubutAnalytics && window.LuubutAnalytics.track) {
-    window.LuubutAnalytics.track('payment_success', { template_id: order.templateId, website_id: null, metadata: { order_id: order.orderId } });
+$('#preview-create').addEventListener('click', async () => {
+  const fromBuilder = $('#preview-dialog').dataset.fromBuilder === 'true';
+  const websiteId = $('#preview-dialog').dataset.websiteId || '';
+  $('#preview-dialog').close();
+  delete $('#preview-dialog').dataset.fromBuilder;
+  delete $('#preview-dialog').dataset.websiteId;
+
+  if (fromBuilder) {
+    if (!websiteId) {
+      alert('Không tìm thấy website draft. Vui lòng tạo preview lại.');
+      return;
+    }
+
+    try {
+      const orderResult = await fetchJson('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteId, templateId: selectedTemplate.id })
+      });
+
+      if (!orderResult.success) {
+        throw new Error(orderResult.error || 'Không thể tạo đơn hàng.');
+      }
+
+      if (window.LuubutAnalytics && window.LuubutAnalytics.track) {
+        window.LuubutAnalytics.track('submit_order', {
+          template_id: selectedTemplate.id,
+          website_id: websiteId,
+          metadata: { order_reference: orderResult.orderReference || '', amount: String(orderResult.amount || 0) }
+        });
+      }
+
+      const params = new URLSearchParams({
+        order: orderResult.orderId || '',
+        reference: orderResult.orderReference || '',
+        template: selectedTemplate.id,
+        websiteId
+      });
+
+      window.location.href = `/checkout.html?${params.toString()}`;
+    } catch (error) {
+      console.error('Create-order failed:', error);
+      alert('Không thể tạo đơn hàng. Vui lòng thử lại.');
+    }
+    return;
   }
-  const publicRecord = { ...draft, slug: order.publicSlug, template: order.templateId, name1: draft.name1 || draft.senderName || 'Minh', name2: draft.name2 || draft.receiverName || 'Ngọc', startDate: draft.startDate || draft.specialDate || '2025-02-14', loveLetter: draft.letter || draft.loveLetter || '', finalMessage: draft.finalMessage || draft.message || '', photo1: draft.photo1 || draft.senderPhoto || '', photo2: draft.photo2 || draft.receiverPhoto || '', album: Array.isArray(draft.album) ? draft.album : [] }; saveCoupleRecord(publicRecord); const finalUrl = `preview.html?slug=${encodeURIComponent(order.publicSlug)}&template=${encodeURIComponent(order.templateId)}`; const content = $('#order-content'); content.innerHTML = `<p class="eyebrow">Published</p><h2>Website của bạn đã sẵn sàng! 🎉</h2><span class="order-status published">PUBLISHED · PAID</span><p>Đây là public URL mô phỏng được tạo sau bước mock payment.</p><div class="published-url">${order.publicUrl}<button class="small-button" id="copy-url" type="button">Sao chép</button></div><div class="qr-result" id="website-qr"></div><p>Quét mã để mở website 💗</p><div class="order-actions"><a class="button primary" href="${finalUrl}" target="_blank" rel="noreferrer">Mở preview <span>↗</span></a></div>`; if (window.QRCode) new QRCode($('#website-qr'), { text: order.publicUrl, width: 160, height: 160, colorDark: '#46363c', colorLight: '#ffffff' }); else $('#website-qr').textContent = order.publicUrl; $('#copy-url').addEventListener('click', async () => { try { await navigator.clipboard.writeText(order.publicUrl); $('#copy-url').textContent = 'Đã chép'; } catch { $('#copy-url').textContent = 'Hãy copy thủ công'; } });
-}
-$('#preview-create').addEventListener('click', async () => { const fromBuilder = $('#preview-dialog').dataset.fromBuilder === 'true'; const websiteId = $('#preview-dialog').dataset.websiteId || ''; $('#preview-dialog').close(); delete $('#preview-dialog').dataset.fromBuilder; delete $('#preview-dialog').dataset.websiteId; if (fromBuilder) { if (!websiteId) { alert('Không tìm thấy website draft. Vui lòng tạo preview lại.'); return; } try { const orderResponse = await fetch('/api/create-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ websiteId, templateId: selectedTemplate.id }) }); const orderResult = await orderResponse.json(); if (!orderResponse.ok || !orderResult.success) { throw new Error(orderResult.error || 'Không thể tạo đơn hàng.'); } if (window.LuubutAnalytics && window.LuubutAnalytics.track) { window.LuubutAnalytics.track('submit_order', { template_id: selectedTemplate.id, website_id: websiteId, metadata: { order_reference: orderResult.orderReference || '', amount: String(orderResult.amount || 0) } }); } const params = new URLSearchParams({ order: orderResult.orderId || '', reference: orderResult.orderReference || '', template: selectedTemplate.id, websiteId }); window.location.href = `/checkout.html?${params.toString()}`; } catch (error) { console.error('Create-order failed:', error); alert('Không thể tạo đơn hàng. Vui lòng thử lại.'); } return; } openBuilder(selectedTemplate.id); }); $$('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
-renderCategories(); renderTemplates();
+
+  openBuilder(selectedTemplate.id);
+});
+
+$$('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
+renderCategories();
+renderTemplates();
 
 function initializeRoute() {
   const params = new URLSearchParams(window.location.search);
@@ -159,10 +204,4 @@ function renderTemplate(templateId, customerData = {}) {
   return { templateId, customerData, previewUrl: template.preview, schema: template.schema };
 }
 
-const paymentProvider = {
-  mode: 'development-mock',
-  createPaymentIntent(order) { return { provider: 'mock', orderId: order.orderId, status: 'PENDING' }; },
-  verifyWebhook() { return { verified: false, reason: 'Chưa cấu hình payment provider server-side.' }; }
-};
-
-window.LuuButPlatform = { templateRegistry, renderTemplate, paymentProvider };
+window.LuuButPlatform = { templateRegistry, renderTemplate };

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { supabaseRequest, parseJsonBody } = require('../server-lib/supabase');
-const { createPayOSClient, getPayOSConfig, normalizeOrderReference } = require('../server-lib/payment');
+const { createPayOSClient, getPayOSConfig, normalizeOrderReference, isMockPaymentMode, ensureProductionModeGuard } = require('../server-lib/payment');
 
 function isUuid(value) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -86,11 +86,6 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'A valid orderId is required.' });
   }
 
-  const config = getPayOSConfig();
-  if (!config.configured) {
-    return res.status(503).json({ ok: false, error: 'Payment provider is not configured.' });
-  }
-
   let order;
   try {
     order = await findOrder(orderId);
@@ -102,9 +97,33 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ ok: false, error: 'Order not found.' });
   }
 
-  if (order.payment_status === 'paid') {
-    return res.status(200).json({ ok: true, payment: publicPayment(order) });
+  if (isMockPaymentMode()) {
+    const payment = {
+      orderId: order.id,
+      orderReference: order.order_reference,
+      amount: Number(order.amount || 0),
+      paymentStatus: 'pending',
+      paymentMethod: 'mock',
+      provider: 'mock',
+      status: 'pending',
+      transactionId: `MOCK-${order.id.slice(0, 8)}-${Date.now().toString(36).toUpperCase()}`,
+      checkoutUrl: `mock://qa/local/${encodeURIComponent(order.id)}`,
+      qrCode: `MOCK-${encodeURIComponent(order.id)}`,
+      mock: true
+    };
+    return res.status(200).json({ ok: true, payment });
   }
+
+  ensureProductionModeGuard();
+
+  const config = getPayOSConfig();
+  if (!config.configured) {
+    return res.status(503).json({ ok: false, error: 'Payment provider is not configured.' });
+  }
+
+  let order;
+  try {
+    order = await findOrder(orderId);
 
   if (order.payment_status !== 'pending') {
     return res.status(409).json({ ok: false, error: 'Order is not available for payment.' });

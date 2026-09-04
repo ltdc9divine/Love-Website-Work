@@ -298,6 +298,15 @@
             Đang chờ thanh toán. Hệ thống đang kiểm tra giao dịch của bạn. Bạn không cần đóng trang này.
           </div>
 
+          <div id="mock-payment-controls" class="note" style="display:none; margin-top: 18px;">
+            <strong>QA / MOCK PAYMENT</strong>
+            <div class="button-row" style="margin-top: 12px;">
+              <button type="button" class="secondary" data-mock-status="paid">Mock thanh toán thành công</button>
+              <button type="button" class="secondary" data-mock-status="failed">Mock thanh toán thất bại</button>
+              <button type="button" class="secondary" data-mock-status="pending">Mock đang chờ</button>
+            </div>
+          </div>
+
           <div class="note">
             Vui lòng chuyển đúng số tiền và giữ nguyên nội dung chuyển khoản. Xác minh thanh toán diễn ra ở server, không dựa vào thao tác của browser.
           </div>
@@ -421,7 +430,10 @@
       qrConfigured: false,
       paymentDetectionConfigured: false,
       paymentConfigured: false,
-      paymentProvider: 'unconfigured'
+      paymentProvider: 'unconfigured',
+      paymentMode: 'production',
+      isMockMode: false,
+      mockUiEnabled: false
     };
     let trustedOrder = null;
     let orderLoadComplete = false;
@@ -465,11 +477,67 @@
         qrConfigured: Boolean(config && config.qrConfigured),
         paymentDetectionConfigured: Boolean(config && config.paymentDetectionConfigured),
         paymentConfigured: Boolean(config && config.paymentConfigured),
-        paymentProvider: config && config.paymentProvider ? String(config.paymentProvider) : 'unconfigured'
+        paymentProvider: config && config.paymentProvider ? String(config.paymentProvider) : 'unconfigured',
+        paymentMode: config && config.paymentMode ? String(config.paymentMode) : 'production',
+        isMockMode: Boolean(config && config.isMockMode),
+        mockUiEnabled: Boolean(config && config.mockUiEnabled)
       };
 
+      renderMockControls();
       document.getElementById('copy-account').onclick = () => copyText(paymentConfig.accountNumber || '', 'copy-account');
       document.getElementById('copy-content').onclick = () => copyText(orderReferenceEl.textContent || '', 'copy-content');
+    }
+
+    function renderMockControls() {
+      const controls = document.getElementById('mock-payment-controls');
+      if (!controls) return;
+      const enabled = paymentConfig.mockUiEnabled || paymentConfig.isMockMode || paymentConfig.paymentMode === 'mock';
+      controls.style.display = enabled ? 'block' : 'none';
+
+      if (enabled) {
+        controls.querySelectorAll('[data-mock-status]').forEach((button) => {
+          button.onclick = async () => {
+            if (!trustedOrder || !trustedOrder.id) {
+              setBanner('Không thể gửi mock payment vì đơn hàng chưa tải xong.', 'error');
+              return;
+            }
+
+            const status = button.dataset.mockStatus;
+            if (!status) return;
+
+            setBanner(`QA mock: đang đặt trạng thái ${status} cho đơn hàng.`, 'loading');
+            try {
+              const response = await fetch('/api/check-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: trustedOrder.id, mockStatus: status })
+              });
+              const payload = await response.json();
+              if (!response.ok || !payload || !payload.ok) {
+                throw new Error(payload && payload.error ? payload.error : 'Mock payment failed.');
+              }
+              trustedOrder = payload.order || trustedOrder;
+              if (status === 'paid') {
+                setStatusPill('MOCK PAID', 'success');
+                setBanner('QA mock: thanh toán thành công. Hệ thống đang tiếp tục luồng production phía sau.', 'success');
+              } else if (status === 'failed') {
+                setStatusPill('MOCK FAILED', 'error');
+                setBanner('QA mock: thanh toán thất bại. Không tạo website.', 'error');
+              } else {
+                setStatusPill('MOCK PENDING', 'loading');
+                setBanner('QA mock: giao dịch đang chờ xác nhận.', 'loading');
+              }
+              renderCheckout();
+              if (status === 'paid') {
+                await loadOrderStatus();
+              }
+            } catch (error) {
+              console.error('Mock payment action failed:', error);
+              setBanner(error && error.message ? error.message : 'Mock payment action failed.', 'error');
+            }
+          };
+        });
+      }
     }
 
     function buildTransferQr(order) {

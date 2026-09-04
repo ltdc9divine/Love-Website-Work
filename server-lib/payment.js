@@ -1,5 +1,30 @@
 const { getEnv } = require('./supabase');
 
+function getPaymentMode() {
+  const configuredMode = (getEnv('PAYMENT_MODE') || '').trim().toLowerCase();
+  if (configuredMode === 'mock' || configuredMode === 'production') {
+    return configuredMode;
+  }
+
+  const isProductionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
+  return isProductionRuntime ? 'production' : 'mock';
+}
+
+function isMockPaymentMode() {
+  return getPaymentMode() === 'mock';
+}
+
+function isProductionPaymentMode() {
+  return getPaymentMode() === 'production';
+}
+
+function ensureProductionModeGuard() {
+  const isProductionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
+  if (isProductionRuntime && getPaymentMode() !== 'production') {
+    throw new Error('Mock payment is disabled in production.');
+  }
+}
+
 function getPayOSConfig() {
   const clientId = getEnv('PAYOS_CLIENT_ID');
   const apiKey = getEnv('PAYOS_API_KEY');
@@ -96,6 +121,50 @@ function buildVietQrPayload({ bankId, accountNumber, accountName, amount, refere
   };
 }
 
+function buildMockPaymentResult(order, status = 'pending') {
+  const normalizedStatus = String(status || 'pending').toLowerCase();
+  const amount = Number(order && order.amount ? order.amount : 0);
+  const timestamp = new Date().toISOString();
+
+  if (normalizedStatus === 'paid') {
+    return {
+      paid: true,
+      provider: 'mock',
+      status: 'paid',
+      transactionCode: `MOCK-${String(order && order.id ? order.id.slice(0, 8) : 'ORDER')}-${Date.now().toString(36).toUpperCase()}`,
+      paymentTransactionId: `MOCK-${Date.now().toString(36).toUpperCase()}`,
+      amount,
+      paidAt: timestamp,
+      available: true,
+      mock: true
+    };
+  }
+
+  if (normalizedStatus === 'failed' || normalizedStatus === 'cancelled') {
+    return {
+      paid: false,
+      provider: 'mock',
+      status: normalizedStatus,
+      reason: normalizedStatus === 'failed' ? 'PAYMENT_FAILED' : 'PAYMENT_CANCELLED',
+      amount,
+      paidAt: null,
+      available: true,
+      mock: true
+    };
+  }
+
+  return {
+    paid: false,
+    provider: 'mock',
+    status: 'pending',
+    reason: 'PAYMENT_PENDING',
+    amount,
+    paidAt: null,
+    available: true,
+    mock: true
+  };
+}
+
 async function checkPayment(order) {
   if (!order) {
     return {
@@ -104,6 +173,11 @@ async function checkPayment(order) {
       reason: 'ORDER_NOT_FOUND',
       available: false
     };
+  }
+
+  if (isMockPaymentMode()) {
+    const mockStatus = String(order.payment_status || '').toLowerCase();
+    return buildMockPaymentResult(order, mockStatus === 'paid' ? 'paid' : mockStatus === 'failed' ? 'failed' : mockStatus === 'cancelled' ? 'cancelled' : 'pending');
   }
 
   if (order.payment_status === 'paid') {
@@ -173,11 +247,16 @@ async function checkPayment(order) {
 }
 
 module.exports = {
+  getPaymentMode,
+  isMockPaymentMode,
+  isProductionPaymentMode,
+  ensureProductionModeGuard,
   getPayOSConfig,
   isPayOSConfigured,
   createPayOSClient,
   normalizeOrderReference,
   buildVietQrPayload,
+  buildMockPaymentResult,
   getBankConfig,
   getPaymentProviderName,
   checkPayment

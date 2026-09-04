@@ -1,5 +1,5 @@
 const { supabaseRequest, parseJsonBody } = require('../server-lib/supabase');
-const { normalizeOrderReference, checkPayment } = require('../server-lib/payment');
+const { normalizeOrderReference, checkPayment, isMockPaymentMode, ensureProductionModeGuard, buildMockPaymentResult } = require('../server-lib/payment');
 
 function isUuid(value) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -59,6 +59,7 @@ module.exports = async function handler(req, res) {
 
   const orderId = typeof payload.orderId === 'string' ? payload.orderId.trim() : '';
   const reference = typeof payload.reference === 'string' ? payload.reference.trim() : '';
+  const mockStatus = typeof payload.mockStatus === 'string' ? payload.mockStatus.trim().toLowerCase() : '';
 
   if (!orderId && !reference) {
     return res.status(400).json({ ok: false, error: 'orderId or reference is required.' });
@@ -79,6 +80,53 @@ module.exports = async function handler(req, res) {
 
   if (!order) {
     return res.status(404).json({ ok: false, error: 'Order not found.' });
+  }
+
+  if (isMockPaymentMode() && mockStatus) {
+    const allowed = ['paid', 'failed', 'pending', 'cancelled'];
+    if (!allowed.includes(mockStatus)) {
+      return res.status(400).json({ ok: false, error: 'Unsupported mock payment status.' });
+    }
+
+    const paymentResult = buildMockPaymentResult(order, mockStatus);
+    const nextStatus = mockStatus === 'paid' ? 'paid' : mockStatus === 'failed' ? 'failed' : mockStatus === 'cancelled' ? 'cancelled' : 'pending';
+
+    try {
+      const updateBody = {
+        payment_status: nextStatus,
+        payment_provider: 'mock',
+        payment_transaction_id: paymentResult.paymentTransactionId || paymentResult.transactionCode || null,
+        transaction_code: paymentResult.transactionCode || paymentResult.paymentTransactionId || null,
+        paid_at: paymentResult.paidAt || null
+      };
+
+      const updatedRows = await supabaseRequest({
+        path: `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}&payment_status=neq.paid`,
+        method: 'PATCH',
+        body: updateBody
+      });
+
+      const updatedOrder = Array.isArray(updatedRows) && updatedRows.length ? updatedRows[0] : order;
+      return res.status(200).json({
+        ok: true,
+        paid: paymentResult.paid,
+        mock: true,
+        provider: 'mock',
+        reason: paymentResult.reason || (paymentResult.paid ? 'PAID' : 'PENDING'),
+        order: {
+          id: updatedOrder.id,
+          order_reference: updatedOrder.order_reference || order.order_reference || '',
+          amount: Number(updatedOrder.amount || order.amount || 0),
+          payment_status: updatedOrder.payment_status || nextStatus,
+          payment_method: updatedOrder.payment_method || order.payment_method || 'bank_transfer',
+          transaction_code: updatedOrder.transaction_code || paymentResult.transactionCode || null,
+          paid_at: updatedOrder.paid_at || paymentResult.paidAt || null,
+          publication_status: updatedOrder.publication_status || null
+        }
+      });
+    } catch (error) {
+      return res.status(500).json({ ok: false, error: error && error.message ? error.message : 'Unable to update mock order status.' });
+    }
   }
 
   if (['paid', 'cancelled', 'failed', 'manual_review'].includes(order.payment_status)) {
@@ -118,6 +166,8 @@ module.exports = async function handler(req, res) {
       }
     });
   }
+
+  ensureProductionModeGuard();
 
   try {
     const updatedOrder = await updateOrderToPaid(order.id, paymentResult);
