@@ -12,9 +12,10 @@
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>
-  <script src="/tracking.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script defer src="/_vercel/insights/script.js?v=20260903-1"></script>
+  <script src="/tracking.js?v=20260903-1"></script>
+  <script src="/templates/love-50/runtime.js?v=20260904-1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js?v=20260903-1" defer></script>
   <script>
     const previewParams = new URLSearchParams(window.location.search);
     const routeToken = window.location.pathname.startsWith('/preview/')
@@ -77,7 +78,10 @@
     }
 
     async function loadTemplate() {
-      const payload = await loadCanonicalPreview();
+      const rawPayload = await loadCanonicalPreview();
+      const payload = rawPayload && window.LuuButRuntime
+        ? window.LuuButRuntime.normalizeLoveData(rawPayload)
+        : rawPayload;
       if (!payload) return null;
       const basePath = templatePath(payload.templateId);
       const templateResponse = await fetch(`${basePath}/index.html`);
