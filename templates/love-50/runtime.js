@@ -1,5 +1,19 @@
 (function () {
   const EMPTY = '';
+  const copy = Object.freeze({
+    memory: 'Một kỷ niệm của chúng mình',
+    timelineMemory: 'Kỷ niệm trong hành trình',
+    typingConnecting: 'đang kết nối...',
+    typingFound: 'đã tìm thấy ký ức',
+    typingDecoding: 'đang mở lá thư...',
+    typingComplete: 'đã hoàn tất',
+    calendarStarted: 'Đây là nơi câu chuyện của chúng mình bắt đầu.',
+    unlockHint: 'Chưa đúng. Ngày bắt đầu câu chuyện đang giữ chiếc chìa khóa.',
+    unlockGranted: 'Đã mở khóa.',
+    orbitMemory: 'Hành tinh kỷ niệm',
+    orbitDescription: 'Một khoảnh khắc được giữ lại trong quỹ đạo của chúng mình.',
+    orbitBeginning: 'Ngày chúng mình bắt đầu'
+  });
   const validMediaProtocols = ['http:', 'https:', 'blob:', 'data:'];
 
   function text(value) {
@@ -248,7 +262,7 @@
     const photoContainer = resolveElement('#result-album');
     const albumSection = resolveElement('#album-section');
     if (photoContainer && data.photos.length) {
-      renderGallery(photoContainer, data.photos, { alt: 'Memory' });
+      renderGallery(photoContainer, data.photos, { alt: 'Kỷ niệm' });
       if (albumSection) albumSection.hidden = false;
     } else if (albumSection) {
       albumSection.hidden = true;
@@ -257,7 +271,7 @@
     const timelineContainer = resolveElement('#timeline-list');
     const timelineSection = resolveElement('#timeline-section');
     if (timelineContainer && data.timeline.length) {
-      renderTimeline(timelineContainer, data.timeline, { alt: 'Timeline memory' });
+      renderTimeline(timelineContainer, data.timeline, { alt: 'Kỷ niệm trong hành trình' });
       if (timelineSection) timelineSection.hidden = false;
     } else if (timelineSection) {
       timelineSection.hidden = true;
@@ -293,7 +307,7 @@
       lifecycle.add(() => window.removeEventListener('scroll', reveal));
       document.querySelectorAll('[data-memory]').forEach((button) => {
         const revealMemory = () => {
-          const item = data.timeline[Number(button.dataset.memory)] || { title: 'A memory of us', text: data.shortMessage };
+          const item = data.timeline[Number(button.dataset.memory)] || { title: copy.memory, text: data.shortMessage };
           setText('#memory-note', [item.date, item.title, item.description].filter(Boolean).join(' · '));
         };
         button.addEventListener('click', revealMemory);
@@ -320,7 +334,7 @@
         const next = () => { if (id !== runId) { resolve(); return; } element.textContent = value.slice(0, index += 1); if (index < value.length) window.setTimeout(next, delay); else resolve(); };
         next();
       });
-      const run = async () => { const id = ++runId; setText('#typing-status', 'connecting...'); await type(fields[0], values[0], 65, id); setText('#typing-status', 'memory stream found'); await type(fields[1], values[1], 28, id); setText('#typing-status', 'decoding the letter...'); await type(fields[2], values[2], 18, id); if (id === runId) setText('#typing-status', 'message complete'); };
+      const run = async () => { const id = ++runId; setText('#typing-status', copy.typingConnecting); await type(fields[0], values[0], 65, id); setText('#typing-status', copy.typingFound); await type(fields[1], values[1], 28, id); setText('#typing-status', copy.typingDecoding); await type(fields[2], values[2], 18, id); if (id === runId) setText('#typing-status', copy.typingComplete); };
       const replay = resolveElement('#replay');
       if (replay) { replay.addEventListener('click', run); lifecycle.add(() => { ++runId; replay.removeEventListener('click', run); }); }
       run();
@@ -334,8 +348,8 @@
       const render = () => {
         if (!grid || !label) return;
         const year = month.getFullYear(); const monthIndex = month.getMonth(); const first = (new Date(year, monthIndex, 1).getDay() + 6) % 7; const total = new Date(year, monthIndex + 1, 0).getDate();
-        label.textContent = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(month); grid.replaceChildren();
-        for (let index = 0; index < 42; index += 1) { const number = index - first + 1; const day = number < 1 ? new Date(year, monthIndex, 0).getDate() + number : number > total ? number - total : number; const cell = document.createElement('button'); cell.type = 'button'; cell.className = `calendar-day${number < 1 || number > total ? ' muted' : ''}`; cell.textContent = String(day); if (anniversary && number >= 1 && number <= total && day === anniversary.getDate() && monthIndex === anniversary.getMonth()) cell.classList.add('anniversary-day'); cell.addEventListener('click', () => { if (cell.classList.contains('anniversary-day')) setText('#calendar-hint', 'This is where our story began.'); }); grid.appendChild(cell); }
+        label.textContent = new Intl.DateTimeFormat('vi-VN', { month: 'long', year: 'numeric' }).format(month); grid.replaceChildren();
+        for (let index = 0; index < 42; index += 1) { const number = index - first + 1; const day = number < 1 ? new Date(year, monthIndex, 0).getDate() + number : number > total ? number - total : number; const cell = document.createElement('button'); cell.type = 'button'; cell.className = `calendar-day${number < 1 || number > total ? ' muted' : ''}`; cell.textContent = String(day); if (anniversary && number >= 1 && number <= total && day === anniversary.getDate() && monthIndex === anniversary.getMonth()) cell.classList.add('anniversary-day'); cell.addEventListener('click', () => { if (cell.classList.contains('anniversary-day')) setText('#calendar-hint', copy.calendarStarted); }); grid.appendChild(cell); }
       };
       const previous = resolveElement('#previous-month'); const next = resolveElement('#next-month');
       const shift = (amount) => { month.setMonth(month.getMonth() + amount); render(); };
@@ -349,13 +363,13 @@
 
     if (variant === 'vault') {
       const start = data.startDate.split('-'); const key = start.length === 3 ? `${start[2]}${start[1]}` : '';
-      const unlock = () => { const input = resolveElement('#secret-code'); const status = resolveElement('#unlock-status'); if (!input || !status) return; if (input.value.replace(/\D/g, '') !== key) { status.textContent = 'Not quite. The day we began holds the key.'; return; } resolveElement('#unlock-panel')?.setAttribute('hidden', 'true'); resolveElement('#secret-letter')?.removeAttribute('hidden'); document.querySelector('.vault-hero')?.classList.add('open'); status.textContent = 'Access granted.'; };
+      const unlock = () => { const input = resolveElement('#secret-code'); const status = resolveElement('#unlock-status'); if (!input || !status) return; if (input.value.replace(/\D/g, '') !== key) { status.textContent = copy.unlockHint; return; } resolveElement('#unlock-panel')?.setAttribute('hidden', 'true'); resolveElement('#secret-letter')?.removeAttribute('hidden'); document.querySelector('.vault-hero')?.classList.add('open'); status.textContent = copy.unlockGranted; };
       const button = resolveElement('#unlock-button'); const input = resolveElement('#secret-code'); button?.addEventListener('click', unlock); input?.addEventListener('keydown', (event) => { if (event.key === 'Enter') unlock(); }); lifecycle.add(() => { button?.removeEventListener('click', unlock); });
     }
 
     if (variant === 'orbit') {
-      const field = resolveElement('#node-field'); const detail = resolveElement('#planet-detail'); const nodes = data.timeline.concat(data.photos.map((photo, index) => ({ title: `Memory planet ${index + 1}`, description: 'A moment kept in our orbit.', image: photo }))).slice(0, 8);
-      if (field) nodes.concat(nodes.length ? [] : [{ title: 'Our beginning', description: data.shortMessage }]).forEach((item, index) => { const node = document.createElement('button'); node.type = 'button'; node.className = 'node'; node.textContent = String(index + 1).padStart(2, '0'); node.style.left = `${12 + (index * 23) % 76}%`; node.style.top = `${12 + (index * 31) % 68}%`; node.setAttribute('aria-label', `Mở memory orbit ${index + 1}`); node.addEventListener('click', () => { setText('#detail-title', item.title); setText('#detail-date', item.date); setText('#detail-text', item.description || item.text); if (detail) detail.hidden = false; }); field.appendChild(node); });
+      const field = resolveElement('#node-field'); const detail = resolveElement('#planet-detail'); const nodes = data.timeline.concat(data.photos.map((photo, index) => ({ title: `${copy.orbitMemory} ${index + 1}`, description: copy.orbitDescription, image: photo }))).slice(0, 8);
+      if (field) nodes.concat(nodes.length ? [] : [{ title: copy.orbitBeginning, description: data.shortMessage }]).forEach((item, index) => { const node = document.createElement('button'); node.type = 'button'; node.className = 'node'; node.textContent = String(index + 1).padStart(2, '0'); node.style.left = `${12 + (index * 23) % 76}%`; node.style.top = `${12 + (index * 31) % 68}%`; node.setAttribute('aria-label', `Mở quỹ đạo kỷ niệm ${index + 1}`); node.addEventListener('click', () => { setText('#detail-title', item.title); setText('#detail-date', item.date); setText('#detail-text', item.description || item.text); if (detail) detail.hidden = false; }); field.appendChild(node); });
       const close = resolveElement('#close-detail'); close?.addEventListener('click', () => { if (detail) detail.hidden = true; }); const core = resolveElement('#core-heart'); core?.addEventListener('click', () => { setText('#detail-title', `${data.name1} & ${data.name2}`); setText('#detail-date', data.startDate); setText('#detail-text', data.loveLetter || data.shortMessage); if (detail) detail.hidden = false; });
     }
   }
