@@ -1,6 +1,43 @@
 <!doctype html>
 <html lang="vi">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lưu Bút</title><link rel="stylesheet" href="./style.css"></head>
-<body><main class="template-shell"><header class="hero"><p class="eyebrow">Love story</p><h1 id="result-sender-name"></h1><span class="heart">♥</span><h1 id="result-receiver-name"></h1><p id="result-message"></p><p id="result-date"></p></header><section id="story-section"><h2>Câu chuyện của chúng mình</h2><p id="result-letter"></p></section><section id="album-section" hidden><h2>Album kỷ niệm</h2><div id="result-album"></div></section><section id="timeline-section" hidden><h2>Timeline</h2><div id="timeline-list"></div></section><section><h2>Đếm thời gian bên nhau</h2><p id="counter-days">0</p><p id="counter-hours">0</p><p id="counter-minutes">0</p><p id="counter-seconds">0</p></section><footer><p id="final-message"></p></footer></main><script src="./config.js"></script><script src="./script.js"></script></body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b1d">
+  <title>Starry Love</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="sky-grain" aria-hidden="true"></div>
+  <main class="star-map">
+    <section class="opening" id="opening" aria-labelledby="opening-title">
+      <div class="opening-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="micro-label">A little universe for two</p><p class="opening-number">01 <span>/</span> 15</p>
+      <h1 id="opening-title">There is a story<br><em>written in the stars.</em></h1>
+      <p class="opening-copy">A private sky, made from the moments that brought you here.</p>
+      <button class="open-story" id="open-story" type="button">Begin the story <span aria-hidden="true">+</span></button>
+    </section>
+    <div class="story-world" id="story-world" hidden>
+      <section class="star-hero reveal" aria-labelledby="couple-title">
+        <div class="star-field" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="hero-orbit hero-orbit-one" aria-hidden="true"></div><div class="hero-orbit hero-orbit-two" aria-hidden="true"></div>
+        <p class="micro-label">A private sky / made for you</p>
+        <div class="couple-identity" aria-label="Ảnh của hai người"><div class="identity-star"><img id="result-sender-photo" alt="" loading="lazy"><span aria-hidden="true">✦</span></div><span class="identity-connector" aria-hidden="true">✦</span><div class="identity-star"><img id="result-receiver-photo" alt="" loading="lazy"><span aria-hidden="true">✦</span></div></div>
+        <div class="constellation" aria-hidden="true"><span></span><span></span><span></span><span></span><b></b></div>
+        <h2 id="couple-title"><span id="result-sender-name">Your name</span><strong>and</strong><span id="result-receiver-name">my favorite person</span></h2>
+        <p class="hero-message" id="result-message">Every ordinary day became beautiful when you arrived.</p>
+        <p class="date-mark"><span aria-hidden="true">✦</span> <span id="result-date">A date worth keeping</span> <span aria-hidden="true">✦</span></p>
+        <a class="scroll-cue" href="#story">Discover our story <span aria-hidden="true">↓</span></a>
+      </section>
+      <section class="story-section reveal" id="story" aria-labelledby="story-title"><div class="section-index">01 / THE SIGNAL</div><div class="story-grid"><div><p class="section-kicker">The first light</p><h3 id="story-title">Somehow, the universe<br>made room for <em>us.</em></h3></div><div class="story-copy"><p class="letter-copy" id="result-letter">Your letter will live here, like a quiet message between two stars.</p><span class="story-rule" aria-hidden="true"></span></div></div></section>
+      <section class="memory-section reveal" aria-labelledby="memory-title"><div class="section-index">02 / CONSTELLATION</div><div class="memory-heading"><p class="section-kicker">Tap a star</p><h3 id="memory-title">Moments that keep<br>pulling us <em>closer.</em></h3></div><div class="memory-orbit" id="memory-orbit"><div class="orbit-ring orbit-ring-one" aria-hidden="true"></div><div class="orbit-ring orbit-ring-two" aria-hidden="true"></div><button class="memory-star star-one" type="button" data-memory="0" aria-label="Open memory one">✦</button><button class="memory-star star-two" type="button" data-memory="1" aria-label="Open memory two">✦</button><button class="memory-star star-three" type="button" data-memory="2" aria-label="Open memory three">✦</button><div class="orbit-core" aria-hidden="true">♡</div></div><p class="memory-note" id="memory-note" aria-live="polite">Choose a star to reveal a little memory.</p></section>
+      <section class="timeline-section reveal" id="timeline-section" aria-labelledby="timeline-title" hidden><div class="section-index">03 / THE JOURNEY</div><div class="section-heading-row"><div><p class="section-kicker">A map of us</p><h3 id="timeline-title">Every point of light<br>led us <em>here.</em></h3></div><span class="journey-mark" aria-hidden="true">✦ ─── ✦</span></div><div class="timeline-list" id="timeline-list"></div></section>
+      <section class="gallery-section reveal" id="album-section" aria-labelledby="gallery-title" hidden><div class="section-index">04 / NIGHT ALBUM</div><div class="section-heading-row"><div><p class="section-kicker">Proof of our light</p><h3 id="gallery-title">The memories<br>we keep <em>glowing.</em></h3></div><span class="gallery-count" aria-hidden="true">∞</span></div><div class="gallery" id="result-album"></div></section>
+      <section class="music-section reveal" aria-label="Nhạc của chúng mình"><div class="music-copy"><span class="music-symbol" aria-hidden="true">♫</span><div><p class="section-kicker">A song for this chapter</p><p class="music-title">Press play when you are ready.</p></div></div><audio data-love-music preload="metadata"></audio><button class="music-toggle" type="button" data-love-music-toggle aria-label="Phát nhạc">Play our song <span aria-hidden="true">▶</span></button></section>
+      <section class="count-section reveal" aria-labelledby="count-title"><div class="section-index">05 / STILL COUNTING</div><p class="section-kicker">Time keeps moving. We keep choosing us.</p><h3 id="count-title">We have shared</h3><div class="counter"><div><strong id="counter-days">0</strong><span>days together</span></div><div><strong id="counter-hours">0</strong><span>hours</span></div><div><strong id="counter-minutes">0</strong><span>minutes</span></div><div><strong id="counter-seconds">0</strong><span>seconds</span></div></div></section>
+      <footer class="ending reveal"><div class="ending-constellation" aria-hidden="true"><i></i><i></i><i></i><b></b></div><p class="micro-label">The brightest thing in my sky</p><h3 id="final-message">Our constellation is still growing.</h3><p class="ending-note">And there are still so many stars ahead.</p><button class="replay" id="replay" type="button">Back to the beginning <span aria-hidden="true">↗</span></button></footer>
+    </div>
+  </main>
+  <script src="./config.js"></script><script src="./script.js"></script>
+</body>
 </html>
