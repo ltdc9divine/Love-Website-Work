@@ -97,6 +97,12 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ ok: false, error: 'Order not found.' });
   }
 
+  try {
+    ensureProductionModeGuard();
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message || 'Payment mode is not allowed.' });
+  }
+
   if (isMockPaymentMode()) {
     const payment = {
       orderId: order.id,
@@ -114,16 +120,10 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, payment });
   }
 
-  ensureProductionModeGuard();
-
   const config = getPayOSConfig();
   if (!config.configured) {
     return res.status(503).json({ ok: false, error: 'Payment provider is not configured.' });
   }
-
-  let order;
-  try {
-    order = await findOrder(orderId);
 
   if (order.payment_status !== 'pending') {
     return res.status(409).json({ ok: false, error: 'Order is not available for payment.' });

@@ -82,6 +82,12 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ ok: false, error: 'Order not found.' });
   }
 
+  try {
+    ensureProductionModeGuard();
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message || 'Payment mode is not allowed.' });
+  }
+
   if (isMockPaymentMode() && mockStatus) {
     const allowed = ['paid', 'failed', 'pending', 'cancelled'];
     if (!allowed.includes(mockStatus)) {
@@ -166,8 +172,6 @@ module.exports = async function handler(req, res) {
       }
     });
   }
-
-  ensureProductionModeGuard();
 
   try {
     const updatedOrder = await updateOrderToPaid(order.id, paymentResult);
