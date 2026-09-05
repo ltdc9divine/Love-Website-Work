@@ -30,22 +30,35 @@ function sanitizeText(value, maxLength = MAX_TEXT_LENGTH) {
 
 function parseJsonBody(body) {
   if (body == null) {
-    return {};
+    const emptyError = new Error('Request body must be valid JSON.');
+    emptyError.statusCode = 400;
+    throw emptyError;
   }
 
   if (typeof body === 'string') {
+    let parsed = null;
     try {
-      return JSON.parse(body);
+      parsed = JSON.parse(body);
     } catch {
-      throw new Error('Request body must be valid JSON.');
+      const parseError = new Error('Request body must be valid JSON.');
+      parseError.statusCode = 400;
+      throw parseError;
     }
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      const shapeError = new Error('Request body must be a JSON object.');
+      shapeError.statusCode = 400;
+      throw shapeError;
+    }
+    return parsed;
   }
 
   if (typeof body === 'object') {
     return body;
   }
 
-  throw new Error('Request body must be a JSON object.');
+  const objectError = new Error('Request body must be a JSON object.');
+  objectError.statusCode = 400;
+  throw objectError;
 }
 
 function isUuid(value) {
